@@ -7,16 +7,22 @@ export interface GoogleSheetsConfig {
 
 export const SHEET_IDS = {
   VLU_SCRIPTS: process.env.REACT_APP_VLU_SCRIPT_SHEET_ID || "",
+  USERS: process.env.REACT_APP_USER_DATA_SHEET_ID || "",
   USER_DATA: process.env.REACT_APP_USER_DATA_SHEET_ID || "",
   PROJECTS: process.env.REACT_APP_PROJECTS_SHEET_ID || "",
   ANALYTICS: process.env.REACT_APP_ANALYTICS_SHEET_ID || "",
+  SCRIPTS: process.env.REACT_APP_SCRIPTS_SHEET_ID || "",
+  VIDEOS: process.env.REACT_APP_VIDEOS_SHEET_ID || "",
 };
 
 export const SHEET_RANGES = {
   VLU_SCRIPTS: "A:Z",
+  USERS: "A:J",
   USER_DATA: "A:J",
   PROJECTS: "A:L",
   ANALYTICS: "A:H",
+  SCRIPTS: "A:N",
+  VIDEOS: "A:I",
 };
 
 export const GOOGLE_SHEETS_CONFIG: GoogleSheetsConfig = {

@@ -122,3 +122,4 @@ mcp-*/
 .github-token
 *oauth*.ts
 *config/google-*
+.vercel

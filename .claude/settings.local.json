@@ -39,7 +39,8 @@
       "Bash(git pull:*)",
       "Bash(git checkout:*)",
       "Bash(rm:*)",
-      "Bash(git filter-branch:*)"
+      "Bash(git filter-branch:*)",
+      "Bash(vercel:*)"
     ],
     "deny": [],
     "ask": []
