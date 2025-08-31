@@ -13,6 +13,70 @@ class GoogleAuthService {
   private isInitializing = false;
   public accessToken: string | null = null;
   private sheets: any;
+  private userInfo: any = null;
+
+  constructor() {
+    // Load saved login info from localStorage on startup
+    this.loadSavedLoginInfo();
+  }
+
+  // Load saved login information from localStorage
+  private loadSavedLoginInfo(): void {
+    try {
+      const savedToken = localStorage.getItem('google_access_token');
+      const savedUserInfo = localStorage.getItem('google_user_info');
+      const tokenExpiry = localStorage.getItem('google_token_expiry');
+      
+      if (savedToken && tokenExpiry) {
+        const expiryTime = parseInt(tokenExpiry);
+        if (Date.now() < expiryTime) {
+          this.accessToken = savedToken;
+          if (savedUserInfo) {
+            this.userInfo = JSON.parse(savedUserInfo);
+          }
+          console.log('✅ Loaded saved Google login info');
+        } else {
+          // Token expired, clear stored data
+          this.clearSavedLoginInfo();
+          console.log('🔄 Cleared expired Google token');
+        }
+      }
+    } catch (error) {
+      console.error('Error loading saved login info:', error);
+      this.clearSavedLoginInfo();
+    }
+  }
+
+  // Save login information to localStorage
+  private saveLoginInfo(accessToken: string, expiresIn: number = 3600, userInfo?: any): void {
+    try {
+      const expiryTime = Date.now() + (expiresIn * 1000);
+      
+      localStorage.setItem('google_access_token', accessToken);
+      localStorage.setItem('google_token_expiry', expiryTime.toString());
+      
+      if (userInfo) {
+        localStorage.setItem('google_user_info', JSON.stringify(userInfo));
+        this.userInfo = userInfo;
+      }
+      
+      console.log('💾 Saved Google login info to localStorage');
+    } catch (error) {
+      console.error('Error saving login info:', error);
+    }
+  }
+
+  // Clear saved login information from localStorage
+  private clearSavedLoginInfo(): void {
+    try {
+      localStorage.removeItem('google_access_token');
+      localStorage.removeItem('google_user_info');
+      localStorage.removeItem('google_token_expiry');
+      this.userInfo = null;
+    } catch (error) {
+      console.error('Error clearing saved login info:', error);
+    }
+  }
 
   // Initialize Google API
   async initialize(): Promise<void> {
@@ -193,7 +257,16 @@ class GoogleAuthService {
 
               if (accessToken) {
                 this.accessToken = accessToken;
-                console.log("Google OAuth successful, access token acquired");
+                
+                // Extract expires_in from OAuth response
+                const expiresIn = parseInt(params.get("expires_in") || "3600");
+                
+                // Get user info and save login data
+                this.getUserInfoFromToken(accessToken).then(userInfo => {
+                  this.saveLoginInfo(accessToken, expiresIn, userInfo);
+                });
+                
+                console.log("Google OAuth successful, access token acquired and saved");
                 popup.close();
                 clearInterval(checkClosed);
                 resolve(true);
@@ -219,11 +292,40 @@ class GoogleAuthService {
     }
   }
 
+  // Get user information from access token
+  private async getUserInfoFromToken(accessToken: string): Promise<any> {
+    try {
+      const response = await fetch(`https://www.googleapis.com/oauth2/v2/userinfo?access_token=${accessToken}`);
+      if (response.ok) {
+        const userInfo = await response.json();
+        console.log("✅ Retrieved user info:", userInfo.name, userInfo.email);
+        return {
+          id: userInfo.id,
+          name: userInfo.name,
+          email: userInfo.email,
+          imageUrl: userInfo.picture
+        };
+      }
+    } catch (error) {
+      console.error("Error getting user info:", error);
+    }
+    
+    // Fallback user info
+    return {
+      id: "google_user",
+      name: "Google User",
+      email: "user@google.com",
+      imageUrl: "https://via.placeholder.com/40",
+    };
+  }
+
   // Sign out
   async signOut(): Promise<void> {
     try {
       this.accessToken = null;
-      console.log("User signed out successfully");
+      this.userInfo = null;
+      this.clearSavedLoginInfo();
+      console.log("🚪 User signed out successfully and cleared saved data");
     } catch (error) {
       console.error("Google Sign Out Error:", error);
     }
@@ -234,11 +336,12 @@ class GoogleAuthService {
     return !!this.accessToken;
   }
 
-  // Get user info (simplified for now)
+  // Get user info
   getUserInfo(): any {
     if (!this.isSignedIn()) return null;
 
-    return {
+    // Return stored user info or fallback
+    return this.userInfo || {
       id: "google_user",
       name: "Google User",
       email: "user@google.com",
