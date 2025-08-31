@@ -40,16 +40,16 @@ export const GOOGLE_OAUTH_CONFIG: GoogleOAuthConfig = {
   scope: "https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.readonly",
 };
 
+export const VLU_SCRIPT_SHEET = {
+  sheet_id: process.env.REACT_APP_VLU_SCRIPT_SHEET_ID || "1Q43gGNkseRl5dZDnenhNVvJCf7cappiKykCraqL-B-A",
+  name: "VLU-KỊCH BẢN",
+  range: "A:Z",
+};
+
 // Debug: Log Client ID at startup
 console.log("🔍 DEBUG - Client ID:", GOOGLE_OAUTH_CONFIG.client_id);
 console.log("🔍 DEBUG - Environment:", process.env.NODE_ENV);
 console.log("🔍 DEBUG - Sheet ID from env:", process.env.REACT_APP_VLU_SCRIPT_SHEET_ID);
 console.log("🔍 DEBUG - Final Sheet ID:", VLU_SCRIPT_SHEET.sheet_id);
 console.log("🔍 DEBUG - All REACT_APP vars:", Object.keys(process.env).filter(key => key.startsWith('REACT_APP')));
-
-export const VLU_SCRIPT_SHEET = {
-  sheet_id: process.env.REACT_APP_VLU_SCRIPT_SHEET_ID || "1Q43gGNkseRl5dZDnenhNVvJCf7cappiKykCraqL-B-A",
-  name: "VLU-KỊCH BẢN",
-  range: "A:Z",
-};
 
