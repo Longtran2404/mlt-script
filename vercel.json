@@ -1,5 +1,4 @@
 {
-  "name": "mlt-script",
   "version": 2,
   "builds": [
     {
@@ -15,5 +14,10 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ]
+  ],
+  "build": {
+    "env": {
+      "CI": "false"
+    }
+  }
 }
