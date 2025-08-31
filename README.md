@@ -178,3 +178,4 @@ Dự án này được phát hành dưới MIT License.
 ---
 
 ⭐ **Star dự án này nếu bạn thấy hữu ích!**
+# Force rebuild to load env vars

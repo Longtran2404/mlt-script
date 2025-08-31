@@ -41,7 +41,8 @@
       "Bash(rm:*)",
       "Bash(git filter-branch:*)",
       "Bash(vercel:*)",
-      "WebFetch(domain:mlt-script-l7x42efa4-minh-long-trans-projects.vercel.app)"
+      "WebFetch(domain:mlt-script-l7x42efa4-minh-long-trans-projects.vercel.app)",
+      "WebFetch(domain:mlt-script.vercel.app)"
     ],
     "deny": [],
     "ask": []
