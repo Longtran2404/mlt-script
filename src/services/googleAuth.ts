@@ -376,11 +376,19 @@ class VLUScriptService {
   // Parse timestamp string to SceneTimestamp object
   private parseTimestamp(timestampStr: string): SceneTimestamp | null {
     try {
-      // Format: HH:MM:SS.mmm or HH:MM:SS or MM:SS.mmm or MM:SS
-      const regex = /^(?:(\d{1,2}):)?(\d{1,2}):(\d{1,2})(?:\.(\d{1,3}))?$/;
-      const match = timestampStr.match(regex);
+      if (!timestampStr || timestampStr.trim() === "") return null;
+      
+      // Clean the timestamp string
+      const cleanStr = timestampStr.toString().trim();
+      
+      // Format: HH:MM:SS.mmm or HH:MM:SS or MM:SS.mmm or MM:SS or HH:MM:SS,mmm
+      const regex = /^(?:(\d{1,2}):)?(\d{1,2}):(\d{1,2})(?:[,.](\d{1,3}))?$/;
+      const match = cleanStr.match(regex);
 
-      if (!match) return null;
+      if (!match) {
+        console.warn("Cannot parse timestamp:", timestampStr);
+        return null;
+      }
 
       const hours = parseInt(match[1] || "0", 10);
       const minutes = parseInt(match[2], 10);
@@ -404,6 +412,7 @@ class VLUScriptService {
     const headers = rawData[0];
     const timestampColumnIndex = headers.findIndex(
       (header: string) =>
+        header.toLowerCase().includes("giờ:phút:giây") ||
         header.toLowerCase().includes("giờ") ||
         header.toLowerCase().includes("time") ||
         header.toLowerCase().includes("timestamp")
@@ -427,52 +436,17 @@ class VLUScriptService {
 
       if (!timestamp) continue;
 
+      // Map columns based on user's sheet structure:
+      // STT(A) | Thời lượng(B) | Phân cảnh(C) | Text trên video(D) | Ghi chú(E) | VEO3 Prompt(F) | Ngày(G) | Giờ:phút:giây(H) | Timestamp ms(I) | Lời thoại(J)
       const scene: ScriptScene = {
         id: `scene_${i}`,
         timestamp,
         timestampString,
-        content:
-          row[
-            headers.findIndex(
-              (h: string) =>
-                h.toLowerCase().includes("content") ||
-                h.toLowerCase().includes("nội dung")
-            )
-          ] ||
-          row[1] ||
-          "",
-        description:
-          row[
-            headers.findIndex(
-              (h: string) =>
-                h.toLowerCase().includes("description") ||
-                h.toLowerCase().includes("mô tả")
-            )
-          ] || "",
-        speaker:
-          row[
-            headers.findIndex(
-              (h: string) =>
-                h.toLowerCase().includes("speaker") ||
-                h.toLowerCase().includes("người nói")
-            )
-          ] || "",
-        action:
-          row[
-            headers.findIndex(
-              (h: string) =>
-                h.toLowerCase().includes("action") ||
-                h.toLowerCase().includes("hành động")
-            )
-          ] || "",
-        notes:
-          row[
-            headers.findIndex(
-              (h: string) =>
-                h.toLowerCase().includes("note") ||
-                h.toLowerCase().includes("ghi chú")
-            )
-          ] || "",
+        content: row[3] || row[9] || "", // "Text trên video" (column D) or "Lời thoại" (column J)
+        description: row[2] || "", // "Phân cảnh" (column C)
+        speaker: "", // Not available in current sheet structure
+        action: row[5] || "", // "VEO3 Prompt" (column F) as action
+        notes: row[4] || "", // "Ghi chú" (column E)
         sceneNumber,
       };
 
