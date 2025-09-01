@@ -192,7 +192,7 @@ class GoogleAuthService {
 
     // Create scripts from grouped scenes
     let scriptId = 1;
-    for (const [title, scenes] of scriptMap.entries()) {
+    scriptMap.forEach((scenes, title) => {
       if (scenes.length > 0) {
         const script: Script = {
           id: scriptId.toString(),
@@ -208,7 +208,7 @@ class GoogleAuthService {
         scripts.push(script);
         scriptId++;
       }
-    }
+    });
 
     console.log("🎬 Generated", scripts.length, "scripts from sheet data");
     return scripts;
