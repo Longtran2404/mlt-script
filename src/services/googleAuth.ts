@@ -176,14 +176,15 @@ class GoogleAuthService {
         }
       });
 
-      // Initialize client only (no OAuth2 for now to avoid iframe issues)
+      // Initialize client with API key and discovery docs
       try {
         await window.gapi.client.init({
+          apiKey: process.env.REACT_APP_GOOGLE_API_KEY || "", // API key optional for public sheets
           discoveryDocs: [
             "https://sheets.googleapis.com/$discovery/rest?version=v4",
           ],
         });
-        console.log("Google Sheets API client initialized (no OAuth yet)");
+        console.log("Google Sheets API client initialized");
       } catch (initError: any) {
         throw new Error(
           "Failed to initialize Google Sheets API client: " +
@@ -396,7 +397,9 @@ class VLUScriptService {
         range
       );
 
-      // Use gapi.client to make the request
+      // Use gapi.client with proper authorization to make the request
+      window.gapi.client.setToken({ access_token: this.authService.accessToken });
+      
       const response = await window.gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: sheetId,
         range: range,
@@ -406,9 +409,25 @@ class VLUScriptService {
       const data = response.result;
       console.log("Sheet data received:", data.values?.length || 0, "rows");
       return data.values || [];
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error getting sheet data:", error);
-      throw error;
+      console.error("Error details:", {
+        message: error.message,
+        status: error.status,
+        result: error.result,
+        body: error.body
+      });
+      
+      // Check if it's a permission/auth error
+      if (error.status === 403) {
+        throw new Error("Không có quyền truy cập Google Sheet. Vui lòng kiểm tra:\n1. Sheet có được chia sẻ công khai?\n2. Tài khoản Google có quyền truy cập?");
+      } else if (error.status === 404) {
+        throw new Error("Không tìm thấy Google Sheet. Vui lòng kiểm tra Sheet ID: " + sheetId);
+      } else if (error.status === 401) {
+        throw new Error("Token đã hết hạn. Vui lòng đăng nhập lại.");
+      }
+      
+      throw new Error("Lỗi khi lấy dữ liệu từ Google Sheet: " + (error.message || "Unknown error"));
     }
   }
 
@@ -427,6 +446,9 @@ class VLUScriptService {
       }
 
       console.log("Updating sheet data:", sheetId, range);
+
+      // Set authorization token
+      window.gapi.client.setToken({ access_token: this.authService.accessToken });
 
       const response =
         await window.gapi.client.sheets.spreadsheets.values.update({
@@ -459,6 +481,9 @@ class VLUScriptService {
       }
 
       console.log("Appending sheet data:", sheetId, range);
+
+      // Set authorization token
+      window.gapi.client.setToken({ access_token: this.authService.accessToken });
 
       const response =
         await window.gapi.client.sheets.spreadsheets.values.append({
