@@ -10,12 +10,13 @@ import "./App.css";
 import EnhancedDashboard from "./pages/EnhancedDashboard";
 import ScriptManager from "./pages/ScriptManager";
 import TaoVideo from "./pages/TaoVideo";
-import TaoKichBan from "./pages/TaoKichBan";
+// TaoKichBan đã được thay thế bằng ScriptCreator
+import ScriptCreator from "./pages/ScriptCreator";
+import NewScriptCreatorInfo from "./components/NewScriptCreatorInfo";
 import ProjectManagement from "./pages/ProjectManagement";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import Help from "./pages/Help";
-
 
 function App() {
   return (
@@ -24,85 +25,131 @@ function App() {
         <div className="App">
           <Routes>
             {/* Trang chủ với MainLayout nhưng không có sidebar */}
-            <Route path="/" element={
-              <MainLayout showSidebar={false}>
-                <NewHome />
-              </MainLayout>
-            } />
-            
-            {/* Các trang có sidebar */}
-            <Route path="/dashboard" element={
-              <MainLayout showSidebar={true}>
-                <div className="container mx-auto px-4 py-8">
-                  <EnhancedDashboard />
-                </div>
-              </MainLayout>
-            } />
-            
-            <Route path="/tao-video" element={
-              <MainLayout showSidebar={true}>
-                <div className="container mx-auto px-4 py-8">
-                  <TaoVideo />
-                </div>
-              </MainLayout>
-            } />
+            <Route
+              path="/"
+              element={
+                <MainLayout showSidebar={false}>
+                  <NewHome />
+                </MainLayout>
+              }
+            />
 
-            <Route path="/tao-kich-ban" element={
-              <MainLayout showSidebar={true}>
-                <div className="container mx-auto px-4 py-8">
-                  <TaoKichBan />
-                </div>
-              </MainLayout>
-            } />
-            
-            <Route path="/quan-ly-kich-ban" element={
-              <MainLayout showSidebar={true}>
-                <div className="container mx-auto px-4 py-8">
-                  <ScriptManager />
-                </div>
-              </MainLayout>
-            } />
-            
-            <Route path="/quan-ly-du-an" element={
-              <MainLayout showSidebar={true}>
-                <div className="container mx-auto px-4 py-8">
-                  <ProjectManagement />
-                </div>
-              </MainLayout>
-            } />
-            
-            <Route path="/analytics" element={
-              <MainLayout showSidebar={true}>
-                <div className="container mx-auto px-4 py-8">
-                  <Analytics />
-                </div>
-              </MainLayout>
-            } />
-            
-            <Route path="/cai-dat" element={
-              <MainLayout showSidebar={true}>
-                <div className="container mx-auto px-4 py-8">
-                  <Settings />
-                </div>
-              </MainLayout>
-            } />
-            
-            <Route path="/tro-giup" element={
-              <MainLayout showSidebar={true}>
-                <div className="container mx-auto px-4 py-8">
-                  <Help />
-                </div>
-              </MainLayout>
-            } />
-            
+            {/* Các trang có sidebar */}
+            <Route
+              path="/dashboard"
+              element={
+                <MainLayout showSidebar={true}>
+                  <div className="container mx-auto px-4 py-8">
+                    <EnhancedDashboard />
+                  </div>
+                </MainLayout>
+              }
+            />
+
+            <Route
+              path="/tao-video"
+              element={
+                <MainLayout showSidebar={true}>
+                  <div className="container mx-auto px-4 py-8">
+                    <TaoVideo />
+                  </div>
+                </MainLayout>
+              }
+            />
+
+            <Route
+              path="/tao-kich-ban"
+              element={
+                <MainLayout showSidebar={true}>
+                  <ScriptCreator />
+                </MainLayout>
+              }
+            />
+
+            <Route
+              path="/tao-kich-ban-new"
+              element={
+                <MainLayout showSidebar={true}>
+                  <ScriptCreator />
+                </MainLayout>
+              }
+            />
+
+            <Route
+              path="/script-creator-info"
+              element={
+                <MainLayout showSidebar={true}>
+                  <NewScriptCreatorInfo />
+                </MainLayout>
+              }
+            />
+
+            <Route
+              path="/quan-ly-kich-ban"
+              element={
+                <MainLayout showSidebar={true}>
+                  <div className="container mx-auto px-4 py-8">
+                    <ScriptManager />
+                  </div>
+                </MainLayout>
+              }
+            />
+
+            <Route
+              path="/quan-ly-du-an"
+              element={
+                <MainLayout showSidebar={true}>
+                  <div className="container mx-auto px-4 py-8">
+                    <ProjectManagement />
+                  </div>
+                </MainLayout>
+              }
+            />
+
+            <Route
+              path="/analytics"
+              element={
+                <MainLayout showSidebar={true}>
+                  <div className="container mx-auto px-4 py-8">
+                    <Analytics />
+                  </div>
+                </MainLayout>
+              }
+            />
+
+            <Route
+              path="/cai-dat"
+              element={
+                <MainLayout showSidebar={true}>
+                  <div className="container mx-auto px-4 py-8">
+                    <Settings />
+                  </div>
+                </MainLayout>
+              }
+            />
+
+            <Route
+              path="/tro-giup"
+              element={
+                <MainLayout showSidebar={true}>
+                  <div className="container mx-auto px-4 py-8">
+                    <Help />
+                  </div>
+                </MainLayout>
+              }
+            />
+
             {/* Special routes */}
-            <Route path="/service-demo" element={
-              <MainLayout showSidebar={true}>
-                <div className="container mx-auto px-4 py-8">
-                  <ServiceCardDemo />
-                </div>
-              </MainLayout>
-            } />
+            <Route
+              path="/service-demo"
+              element={
+                <MainLayout showSidebar={true}>
+                  <div className="container mx-auto px-4 py-8">
+                    <ServiceCardDemo />
+                  </div>
+                </MainLayout>
+              }
+            />
           </Routes>
         </div>
       </Router>

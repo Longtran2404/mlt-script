@@ -1,22 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  X,
-  Plus,
-  Target,
-  Info,
-  Award,
-  BookOpen,
-  GraduationCap,
-  Users,
-  Brain,
-  Zap,
-  Star,
-  Play,
-  Settings,
-  BarChart3,
-} from "lucide-react";
+import { Sparkles, Target } from "lucide-react";
 import clsx from "clsx";
 
 const ALL_SERVICES = [
@@ -33,7 +18,7 @@ const ALL_SERVICES = [
     ],
     price: "Từ 120 triệu",
     duration: "2-3 giờ",
-    icon: Award,
+    icon: Sparkles,
     color: "from-red-500 to-rose-600",
     category: "premium",
   },
@@ -50,7 +35,7 @@ const ALL_SERVICES = [
     ],
     price: "Từ 150 triệu",
     duration: "3-4 giờ",
-    icon: Award,
+    icon: Sparkles,
     color: "from-red-600 to-rose-700",
     category: "luxury",
   },
@@ -67,7 +52,7 @@ const ALL_SERVICES = [
     ],
     price: "Từ 180 triệu",
     duration: "3-5 giờ",
-    icon: Award,
+    icon: Sparkles,
     color: "from-red-400 to-rose-500",
     category: "exclusive",
   },
@@ -118,7 +103,7 @@ const ALL_SERVICES = [
     ],
     price: "Từ 50 triệu",
     duration: "1-2 giờ",
-    icon: Award,
+    icon: Sparkles,
     color: "from-pink-500 to-rose-600",
     category: "exclusive",
   },
@@ -152,7 +137,7 @@ const ALL_SERVICES = [
     ],
     price: "Từ 350 triệu",
     duration: "6-8 giờ",
-    icon: Award,
+    icon: Sparkles,
     color: "from-red-600 to-rose-700",
     category: "luxury",
   },
@@ -231,7 +216,6 @@ export function ServiceMultiSelect({
             {ALL_SERVICES.map((service) => {
               const isSelected = value.includes(service.name);
               const isExpanded = expandedService === service.id;
-              const transition = cardTransitions[service.id];
 
               return (
                 <div
@@ -289,7 +273,7 @@ export function ServiceMultiSelect({
                             {service.name}
                           </h3>
                           <div className="flex items-center text-xs text-red-600 mb-2">
-                            <Info className="w-3 h-3 mr-1" />
+                            <Sparkles className="w-3 h-3 mr-1" />
                             Nhấn để xem chi tiết
                           </div>
                         </div>
@@ -328,7 +312,7 @@ export function ServiceMultiSelect({
                     >
                       <div className="p-4 h-full flex flex-col justify-center items-center text-center text-white">
                         <div className="mb-3">
-                          <Award className="w-8 h-8 mx-auto mb-2" />
+                          <Sparkles className="w-8 h-8 mx-auto mb-2" />
                           <h3 className="text-sm font-bold mb-1">ĐÃ CHỌN</h3>
                           <p
                             className="text-xs opacity-90"
@@ -354,7 +338,7 @@ export function ServiceMultiSelect({
                           }}
                           className="absolute top-2 right-2 w-6 h-6 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
                         >
-                          <X className="w-3 h-3" />
+                          <Sparkles className="w-3 h-3" />
                         </button>
                       </div>
                     </div>
@@ -395,7 +379,7 @@ export function ServiceMultiSelect({
                       onClick={() => setExpandedService(null)}
                       className="absolute top-4 right-4 w-8 h-8 bg-red-100 hover:bg-red-200 rounded-full flex items-center justify-center transition-colors z-10"
                     >
-                      <X className="w-4 h-4 text-red-600" />
+                      <Sparkles className="w-4 h-4 text-red-600" />
                     </button>
 
                     {/* Header */}
@@ -426,7 +410,7 @@ export function ServiceMultiSelect({
                       {/* Features */}
                       <div className="mb-6">
                         <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                          <Info className="w-4 h-4 text-red-500" />
+                          <Sparkles className="w-4 h-4 text-red-500" />
                           Ưu điểm vượt trội:
                         </h3>
                         <ul className="space-y-2">
@@ -486,8 +470,8 @@ export function ServiceMultiSelect({
 
         {/* Custom Service Input */}
         <div className="bg-gradient-to-r from-red-50 to-white rounded-2xl p-4 sm:p-6 border-2 border-red-200">
-          <label className="block text-sm font-medium text-gray-900 mb-3 flex items-center gap-2">
-            <Plus className="w-4 h-4 text-red-600" />
+          <label className="inline-flex text-sm font-medium text-gray-900 mb-3 items-center gap-2">
+            <Sparkles className="w-4 h-4 text-red-600" />
             Thêm dịch vụ cao cấp tùy chỉnh
           </label>
           <div className="flex flex-col sm:flex-row gap-3">
@@ -504,7 +488,7 @@ export function ServiceMultiSelect({
               disabled={!custom.trim()}
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 px-4 sm:px-5 py-3 text-white font-medium transition-all hover:from-red-500 hover:to-rose-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg text-sm sm:text-base transform hover:scale-105"
             >
-              <Plus size={16} />
+              <Sparkles size={16} />
               Thêm dịch vụ
             </button>
           </div>
@@ -526,7 +510,7 @@ export function ServiceMultiSelect({
                   <span
                     key={serviceName}
                     className={clsx(
-                      "inline-flex items-center gap-2 rounded-full border-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium break-words max-w-full",
+                      "inline-flex items-center gap-2 rounded-full border-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium max-w-full",
                       service
                         ? `bg-gradient-to-r ${service.color} text-white border-white/30`
                         : "bg-gradient-to-r from-red-500 to-rose-600 text-white border-white/30"
@@ -538,7 +522,7 @@ export function ServiceMultiSelect({
                       onClick={() => removeService(serviceName)}
                       className="inline-flex items-center justify-center w-4 h-4 rounded-full hover:bg-white/20 transition-colors flex-shrink-0"
                     >
-                      <X size={12} />
+                      <Sparkles size={12} />
                     </button>
                   </span>
                 );

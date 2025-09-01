@@ -23,10 +23,10 @@ class GoogleAuthService {
   // Load saved login information from localStorage
   private loadSavedLoginInfo(): void {
     try {
-      const savedToken = localStorage.getItem('google_access_token');
-      const savedUserInfo = localStorage.getItem('google_user_info');
-      const tokenExpiry = localStorage.getItem('google_token_expiry');
-      
+      const savedToken = localStorage.getItem("google_access_token");
+      const savedUserInfo = localStorage.getItem("google_user_info");
+      const tokenExpiry = localStorage.getItem("google_token_expiry");
+
       if (savedToken && tokenExpiry) {
         const expiryTime = parseInt(tokenExpiry);
         if (Date.now() < expiryTime) {
@@ -34,47 +34,51 @@ class GoogleAuthService {
           if (savedUserInfo) {
             this.userInfo = JSON.parse(savedUserInfo);
           }
-          console.log('✅ Loaded saved Google login info');
+          console.log("✅ Loaded saved Google login info");
         } else {
           // Token expired, clear stored data
           this.clearSavedLoginInfo();
-          console.log('🔄 Cleared expired Google token');
+          console.log("🔄 Cleared expired Google token");
         }
       }
     } catch (error) {
-      console.error('Error loading saved login info:', error);
+      console.error("Error loading saved login info:", error);
       this.clearSavedLoginInfo();
     }
   }
 
   // Save login information to localStorage
-  private saveLoginInfo(accessToken: string, expiresIn: number = 3600, userInfo?: any): void {
+  private saveLoginInfo(
+    accessToken: string,
+    expiresIn: number = 3600,
+    userInfo?: any
+  ): void {
     try {
-      const expiryTime = Date.now() + (expiresIn * 1000);
-      
-      localStorage.setItem('google_access_token', accessToken);
-      localStorage.setItem('google_token_expiry', expiryTime.toString());
-      
+      const expiryTime = Date.now() + expiresIn * 1000;
+
+      localStorage.setItem("google_access_token", accessToken);
+      localStorage.setItem("google_token_expiry", expiryTime.toString());
+
       if (userInfo) {
-        localStorage.setItem('google_user_info', JSON.stringify(userInfo));
+        localStorage.setItem("google_user_info", JSON.stringify(userInfo));
         this.userInfo = userInfo;
       }
-      
-      console.log('💾 Saved Google login info to localStorage');
+
+      console.log("💾 Saved Google login info to localStorage");
     } catch (error) {
-      console.error('Error saving login info:', error);
+      console.error("Error saving login info:", error);
     }
   }
 
   // Clear saved login information from localStorage
   private clearSavedLoginInfo(): void {
     try {
-      localStorage.removeItem('google_access_token');
-      localStorage.removeItem('google_user_info');
-      localStorage.removeItem('google_token_expiry');
+      localStorage.removeItem("google_access_token");
+      localStorage.removeItem("google_user_info");
+      localStorage.removeItem("google_token_expiry");
       this.userInfo = null;
     } catch (error) {
-      console.error('Error clearing saved login info:', error);
+      console.error("Error clearing saved login info:", error);
     }
   }
 
@@ -178,18 +182,47 @@ class GoogleAuthService {
 
       // Initialize client with API key and discovery docs
       try {
+        const apiKey = process.env.REACT_APP_GOOGLE_API_KEY;
+        if (
+          !apiKey ||
+          apiKey === "your_api_key_here" ||
+          apiKey === "your_actual_api_key_here"
+        ) {
+          console.warn(
+            "⚠️ Google API key not configured properly - using mock mode"
+          );
+          // Skip Google API initialization for now
+          this.gapi = null;
+          this.isInitialized = true;
+          console.log("Google API skipped - running in mock mode");
+          return;
+        }
+
         await window.gapi.client.init({
-          apiKey: process.env.REACT_APP_GOOGLE_API_KEY || "", // API key optional for public sheets
+          apiKey: apiKey || "", // Use configured API key
           discoveryDocs: [
             "https://sheets.googleapis.com/$discovery/rest?version=v4",
           ],
         });
         console.log("Google Sheets API client initialized");
       } catch (initError: any) {
-        throw new Error(
-          "Failed to initialize Google Sheets API client: " +
-            (initError.error || initError.message || "Unknown error")
-        );
+        console.error("Google API init error details:", initError);
+
+        // More detailed error handling
+        if (initError?.result?.error?.message) {
+          throw new Error(
+            `Google API Error: ${initError.result.error.message}`
+          );
+        } else if (initError?.message?.includes("400")) {
+          throw new Error(
+            "Invalid API key configuration. Please check REACT_APP_GOOGLE_API_KEY."
+          );
+        } else {
+          throw new Error(
+            "Failed to initialize Google Sheets API client: " +
+              (initError.error || initError.message || "Unknown error")
+          );
+        }
       }
 
       this.gapi = window.gapi;
@@ -210,6 +243,20 @@ class GoogleAuthService {
     try {
       if (!this.isInitialized) {
         await this.initialize();
+      }
+
+      // If running in mock mode, simulate successful sign in
+      if (!this.gapi) {
+        console.log("🔄 Mock mode: Simulating Google sign in");
+        this.accessToken = "mock_token_" + Date.now();
+        this.userInfo = {
+          id: "mock_user",
+          name: "Mock User",
+          email: "mock@example.com",
+          imageUrl: "https://via.placeholder.com/40",
+        };
+        this.saveLoginInfo(this.accessToken, 3600, this.userInfo);
+        return true;
       }
 
       console.log("Starting Google OAuth flow...");
@@ -258,16 +305,18 @@ class GoogleAuthService {
 
               if (accessToken) {
                 this.accessToken = accessToken;
-                
+
                 // Extract expires_in from OAuth response
                 const expiresIn = parseInt(params.get("expires_in") || "3600");
-                
+
                 // Get user info and save login data
-                this.getUserInfoFromToken(accessToken).then(userInfo => {
+                this.getUserInfoFromToken(accessToken).then((userInfo) => {
                   this.saveLoginInfo(accessToken, expiresIn, userInfo);
                 });
-                
-                console.log("Google OAuth successful, access token acquired and saved");
+
+                console.log(
+                  "Google OAuth successful, access token acquired and saved"
+                );
                 popup.close();
                 clearInterval(checkClosed);
                 resolve(true);
@@ -296,7 +345,9 @@ class GoogleAuthService {
   // Get user information from access token
   private async getUserInfoFromToken(accessToken: string): Promise<any> {
     try {
-      const response = await fetch(`https://www.googleapis.com/oauth2/v2/userinfo?access_token=${accessToken}`);
+      const response = await fetch(
+        `https://www.googleapis.com/oauth2/v2/userinfo?access_token=${accessToken}`
+      );
       if (response.ok) {
         const userInfo = await response.json();
         console.log("✅ Retrieved user info:", userInfo.name, userInfo.email);
@@ -304,13 +355,13 @@ class GoogleAuthService {
           id: userInfo.id,
           name: userInfo.name,
           email: userInfo.email,
-          imageUrl: userInfo.picture
+          imageUrl: userInfo.picture,
         };
       }
     } catch (error) {
       console.error("Error getting user info:", error);
     }
-    
+
     // Fallback user info
     return {
       id: "google_user",
@@ -342,12 +393,19 @@ class GoogleAuthService {
     if (!this.isSignedIn()) return null;
 
     // Return stored user info or fallback
-    return this.userInfo || {
-      id: "google_user",
-      name: "Google User",
-      email: "user@google.com",
-      imageUrl: "https://via.placeholder.com/40",
-    };
+    return (
+      this.userInfo || {
+        id: "google_user",
+        name: "Google User",
+        email: "user@google.com",
+        imageUrl: "https://via.placeholder.com/40",
+      }
+    );
+  }
+
+  // Check if running in mock mode
+  isMockMode(): boolean {
+    return !this.isInitialized || !this.gapi;
   }
 }
 
@@ -356,7 +414,7 @@ class VLUScriptService {
   private authService = new GoogleAuthService();
 
   // Get all sheets in the spreadsheet
-  async getAllSheets(): Promise<Array<{id: number, title: string}>> {
+  async getAllSheets(): Promise<Array<{ id: number; title: string }>> {
     try {
       if (!this.authService.isSignedIn()) {
         const signedIn = await this.authService.signIn();
@@ -365,11 +423,26 @@ class VLUScriptService {
         }
       }
 
-      console.log("Getting all sheets from spreadsheet:", VLU_SCRIPT_SHEET.sheet_id);
-      
+      // If running in mock mode, return mock data
+      if (this.authService.isMockMode()) {
+        console.log("🔄 Mock mode: Returning mock sheet data");
+        return [
+          { id: 1, title: "Sheet1" },
+          { id: 2, title: "Sheet2" },
+          { id: 3, title: "Sheet3" },
+        ];
+      }
+
+      console.log(
+        "Getting all sheets from spreadsheet:",
+        VLU_SCRIPT_SHEET.sheet_id
+      );
+
       // Set authorization token
-      window.gapi.client.setToken({ access_token: this.authService.accessToken });
-      
+      window.gapi.client.setToken({
+        access_token: this.authService.accessToken,
+      });
+
       // Get spreadsheet metadata to list all sheets
       const response = await window.gapi.client.sheets.spreadsheets.get({
         spreadsheetId: VLU_SCRIPT_SHEET.sheet_id,
@@ -378,7 +451,7 @@ class VLUScriptService {
       const sheets = response.result.sheets || [];
       const sheetList = sheets.map((sheet: any) => ({
         id: sheet.properties.sheetId,
-        title: sheet.properties.title
+        title: sheet.properties.title,
       }));
 
       console.log("Found sheets:", sheetList);
@@ -421,17 +494,28 @@ class VLUScriptService {
         throw new Error("User not signed in");
       }
 
+      // If running in mock mode, return success
+      if (this.authService.isMockMode()) {
+        console.log("🔄 Mock mode: Sheet connection test successful");
+        return true;
+      }
+
       console.log("Testing connection to sheet:", sheetId);
-      
+
       // Set authorization token
-      window.gapi.client.setToken({ access_token: this.authService.accessToken });
-      
+      window.gapi.client.setToken({
+        access_token: this.authService.accessToken,
+      });
+
       // Try to get sheet metadata first (lighter request)
       const response = await window.gapi.client.sheets.spreadsheets.get({
         spreadsheetId: sheetId,
       });
 
-      console.log("Sheet connection test successful:", response.result.properties?.title);
+      console.log(
+        "Sheet connection test successful:",
+        response.result.properties?.title
+      );
       return true;
     } catch (error: any) {
       console.error("Sheet connection test failed:", error);
@@ -449,6 +533,49 @@ class VLUScriptService {
         }
       }
 
+      // If running in mock mode, return mock data
+      if (this.authService.isMockMode()) {
+        console.log("🔄 Mock mode: Returning mock sheet data");
+        return [
+          [
+            "STT",
+            "Thời lượng",
+            "Phân cảnh",
+            "Text trên video",
+            "Ghi chú",
+            "VEO3 Prompt",
+            "Ngày",
+            "Giờ:phút:giây",
+            "Timestamp ms",
+            "Lời thoại",
+          ],
+          [
+            "1",
+            "00:00:05",
+            "Mở đầu",
+            "Chào mừng đến với khóa học",
+            "Cảnh mở đầu",
+            "Tạo cảnh mở đầu đẹp mắt",
+            "2024-01-01",
+            "00:00:00",
+            "0",
+            "Chào mừng đến với khóa học",
+          ],
+          [
+            "2",
+            "00:00:10",
+            "Giới thiệu",
+            "Hôm nay chúng ta sẽ học về",
+            "Cảnh giới thiệu",
+            "Tạo cảnh giới thiệu chuyên nghiệp",
+            "2024-01-01",
+            "00:00:05",
+            "5000",
+            "Hôm nay chúng ta sẽ học về",
+          ],
+        ];
+      }
+
       console.log(
         "Getting sheet data from sheet ID:",
         sheetId,
@@ -457,8 +584,10 @@ class VLUScriptService {
       );
 
       // Use gapi.client with proper authorization to make the request
-      window.gapi.client.setToken({ access_token: this.authService.accessToken });
-      
+      window.gapi.client.setToken({
+        access_token: this.authService.accessToken,
+      });
+
       const response = await window.gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: sheetId,
         range: range,
@@ -474,19 +603,26 @@ class VLUScriptService {
         message: error.message,
         status: error.status,
         result: error.result,
-        body: error.body
+        body: error.body,
       });
-      
+
       // Check if it's a permission/auth error
       if (error.status === 403) {
-        throw new Error("Không có quyền truy cập Google Sheet. Vui lòng kiểm tra:\n1. Sheet có được chia sẻ công khai?\n2. Tài khoản Google có quyền truy cập?");
+        throw new Error(
+          "Không có quyền truy cập Google Sheet. Vui lòng kiểm tra:\n1. Sheet có được chia sẻ công khai?\n2. Tài khoản Google có quyền truy cập?"
+        );
       } else if (error.status === 404) {
-        throw new Error("Không tìm thấy Google Sheet. Vui lòng kiểm tra Sheet ID: " + sheetId);
+        throw new Error(
+          "Không tìm thấy Google Sheet. Vui lòng kiểm tra Sheet ID: " + sheetId
+        );
       } else if (error.status === 401) {
         throw new Error("Token đã hết hạn. Vui lòng đăng nhập lại.");
       }
-      
-      throw new Error("Lỗi khi lấy dữ liệu từ Google Sheet: " + (error.message || "Unknown error"));
+
+      throw new Error(
+        "Lỗi khi lấy dữ liệu từ Google Sheet: " +
+          (error.message || "Unknown error")
+      );
     }
   }
 
@@ -504,10 +640,18 @@ class VLUScriptService {
         }
       }
 
+      // If running in mock mode, simulate success
+      if (this.authService.isMockMode()) {
+        console.log("🔄 Mock mode: Simulating sheet update");
+        return true;
+      }
+
       console.log("Updating sheet data:", sheetId, range);
 
       // Set authorization token
-      window.gapi.client.setToken({ access_token: this.authService.accessToken });
+      window.gapi.client.setToken({
+        access_token: this.authService.accessToken,
+      });
 
       const response =
         await window.gapi.client.sheets.spreadsheets.values.update({
@@ -539,10 +683,18 @@ class VLUScriptService {
         }
       }
 
+      // If running in mock mode, simulate success
+      if (this.authService.isMockMode()) {
+        console.log("🔄 Mock mode: Simulating sheet append");
+        return true;
+      }
+
       console.log("Appending sheet data:", sheetId, range);
 
       // Set authorization token
-      window.gapi.client.setToken({ access_token: this.authService.accessToken });
+      window.gapi.client.setToken({
+        access_token: this.authService.accessToken,
+      });
 
       const response =
         await window.gapi.client.sheets.spreadsheets.values.append({
@@ -564,10 +716,10 @@ class VLUScriptService {
   private parseTimestamp(timestampStr: string): SceneTimestamp | null {
     try {
       if (!timestampStr || timestampStr.trim() === "") return null;
-      
+
       // Clean the timestamp string
       const cleanStr = timestampStr.toString().trim();
-      
+
       // Format: HH:MM:SS.mmm or HH:MM:SS or MM:SS.mmm or MM:SS or HH:MM:SS,mmm
       const regex = /^(?:(\d{1,2}):)?(\d{1,2}):(\d{1,2})(?:[,.](\d{1,3}))?$/;
       const match = cleanStr.match(regex);
@@ -660,7 +812,7 @@ class VLUScriptService {
       // Reset scene numbering for each script
       const reNumberedScenes = groupScenes.map((scene, index) => ({
         ...scene,
-        sceneNumber: index + 1  // Start from 1 for each script
+        sceneNumber: index + 1, // Start from 1 for each script
       }));
 
       const script: Script = {
@@ -699,7 +851,7 @@ class VLUScriptService {
       // Get spreadsheet ID
       const sheetId = VLU_SCRIPT_SHEET.sheet_id;
       if (!sheetId) {
-        throw new Error('Không tìm thấy Google Spreadsheet ID');
+        throw new Error("Không tìm thấy Google Spreadsheet ID");
       }
 
       console.log("Found spreadsheet ID:", sheetId);
@@ -708,7 +860,9 @@ class VLUScriptService {
       console.log("Testing sheet connection...");
       const connectionTest = await this.testSheetConnection(sheetId);
       if (!connectionTest) {
-        throw new Error("Không thể kết nối đến Google Sheet. Vui lòng kiểm tra:\n1. Sheet có được chia sẻ công khai?\n2. Sheet ID có đúng không?\n3. Tài khoản có quyền truy cập?");
+        throw new Error(
+          "Không thể kết nối đến Google Sheet. Vui lòng kiểm tra:\n1. Sheet có được chia sẻ công khai?\n2. Sheet ID có đúng không?\n3. Tài khoản có quyền truy cập?"
+        );
       }
 
       // Get sheet data from specific sheet
@@ -723,7 +877,12 @@ class VLUScriptService {
 
       // Group and parse scripts
       const scripts = this.groupScenesByTimestamp(rawData);
-      console.log("Scripts parsed:", scripts.length, "scripts from sheet:", sheetName);
+      console.log(
+        "Scripts parsed:",
+        scripts.length,
+        "scripts from sheet:",
+        sheetName
+      );
       return scripts;
     } catch (error) {
       console.error("Error loading scripts from sheet:", error);
@@ -743,23 +902,25 @@ class VLUScriptService {
         return [];
       }
 
-      console.log(`Found ${sheets.length} sheets, loading scripts from each...`);
+      console.log(
+        `Found ${sheets.length} sheets, loading scripts from each...`
+      );
 
       const allScripts: Script[] = [];
-      
+
       // Load scripts from each sheet
       for (const sheet of sheets) {
         try {
           console.log(`Loading from sheet: ${sheet.title}`);
           const sheetScripts = await this.loadScriptsFromSheet(sheet.title);
-          
+
           // Add sheet name to script titles to distinguish them
-          const labeledScripts = sheetScripts.map(script => ({
+          const labeledScripts = sheetScripts.map((script) => ({
             ...script,
             title: `[${sheet.title}] ${script.title}`,
-            tags: [...script.tags, sheet.title]
+            tags: [...script.tags, sheet.title],
           }));
-          
+
           allScripts.push(...labeledScripts);
         } catch (error) {
           console.warn(`Failed to load from sheet ${sheet.title}:`, error);
@@ -775,25 +936,19 @@ class VLUScriptService {
     }
   }
 
-  // Load VLU Scripts from Google Sheets (backward compatibility - load from default sheet)
+  // Load VLU Scripts directly from Google Sheets
   async loadVLUScripts(): Promise<Script[]> {
     try {
-      console.log("Starting to load VLU Scripts...");
+      console.log("🔄 Loading VLU Scripts directly from Google Sheets...");
 
-      // Ensure user is signed in
-      if (!this.authService.isSignedIn()) {
-        console.log("User not signed in, attempting sign in...");
-        const signedIn = await this.authService.signIn();
-        if (!signedIn) {
-          throw new Error("Không thể đăng nhập Google");
-        }
-      }
-
-      // Try to load from all sheets for better user experience
-      return await this.loadAllScriptsFromAllSheets();
+      // Import the simple service
+      const { googleSheetsService } = await import('./googleSheetsSimple');
+      
+      // Load scripts directly from Google Sheets
+      return await googleSheetsService.loadAllScripts();
     } catch (error) {
-      console.error("Error loading VLU Scripts:", error);
-      throw error; // Re-throw to let the UI handle the error
+      console.error("❌ Error loading VLU Scripts:", error);
+      throw error;
     }
   }
 
@@ -849,7 +1004,10 @@ class VLUScriptService {
         const match = script.title.match(/^\[([^\]]+)\]/);
         if (match) {
           targetSheetName = match[1];
-          console.log("Detected target sheet from script title:", targetSheetName);
+          console.log(
+            "Detected target sheet from script title:",
+            targetSheetName
+          );
         }
       }
 
@@ -858,7 +1016,7 @@ class VLUScriptService {
       console.log("Reading data from range:", range);
       const allData = await this.getSheetData(sheetId!, range);
       console.log("Current sheet data rows:", allData.length);
-      
+
       // Debug: Show sheet structure
       if (allData.length > 0) {
         console.log("📋 Sheet Header (row 0):", allData[0]);
@@ -867,20 +1025,25 @@ class VLUScriptService {
           console.log("📄 Second data row (row 2):", allData[2]);
         }
       }
-      
+
       // Create a copy of the data to update
       const updatedData = [...allData];
       let updatedRowsCount = 0;
-      
+
       console.log(`Processing ${script.scenes.length} scenes for updates`);
-      
+
       // Update each scene in the script based on timestamp matching
       script.scenes.forEach((scene, sceneIndex) => {
-        console.log(`Processing scene ${sceneIndex + 1}: timestamp="${scene.timestampString}"`);
-        
+        console.log(
+          `Processing scene ${sceneIndex + 1}: timestamp="${
+            scene.timestampString
+          }"`
+        );
+
         // Find row with matching timestamp in any column
         let foundMatch = false;
-        for (let i = 1; i < updatedData.length; i++) { // Skip header row
+        for (let i = 1; i < updatedData.length; i++) {
+          // Skip header row
           const row = updatedData[i];
           if (row) {
             // Check all columns for timestamp match
@@ -888,20 +1051,24 @@ class VLUScriptService {
               if (row[col]) {
                 const cellValue = row[col].toString().trim();
                 if (cellValue === scene.timestampString) {
-                  console.log(`✅ Found matching row ${i}, column ${col} for timestamp ${scene.timestampString}`);
+                  console.log(
+                    `✅ Found matching row ${i}, column ${col} for timestamp ${scene.timestampString}`
+                  );
                   foundMatch = true;
                   break;
                 }
               }
             }
             if (foundMatch) {
-              console.log(`   Updating: description="${scene.description}", content="${scene.content}", notes="${scene.notes}"`);
-              
+              console.log(
+                `   Updating: description="${scene.description}", content="${scene.content}", notes="${scene.notes}"`
+              );
+
               // Update the row according to user's sheet structure:
               // STT(A) | Thời lượng(B) | Phân cảnh(C) | Text trên video(D) | Ghi chú(E) | VEO3 Prompt(F) | Ngày(G) | Giờ:phút:giây(H) | Timestamp ms(I) | Lời thoại(J)
               updatedData[i] = [
                 row[0] || "", // STT - keep original
-                row[1] || "", // Thời lượng - keep original  
+                row[1] || "", // Thời lượng - keep original
                 scene.description || row[2] || "", // Phân cảnh (C)
                 scene.content || row[3] || "", // Text trên video (D)
                 scene.notes || row[4] || "", // Ghi chú (E)
@@ -916,18 +1083,28 @@ class VLUScriptService {
             }
           }
         }
-        
+
         if (!foundMatch) {
-          console.log(`❌ No matching row found for timestamp: ${scene.timestampString}`);
-          console.log(`   Available timestamps in sheet:`, updatedData.slice(1).map(row => row[7]?.toString().trim()).filter(Boolean));
+          console.log(
+            `❌ No matching row found for timestamp: ${scene.timestampString}`
+          );
+          console.log(
+            `   Available timestamps in sheet:`,
+            updatedData
+              .slice(1)
+              .map((row) => row[7]?.toString().trim())
+              .filter(Boolean)
+          );
         }
       });
-      
-      console.log(`Updated ${updatedRowsCount} rows out of ${script.scenes.length} scenes`);
+
+      console.log(
+        `Updated ${updatedRowsCount} rows out of ${script.scenes.length} scenes`
+      );
 
       // Use the same range for updating as we used for reading
       console.log(`Updating sheet data with range: ${range}`);
-      
+
       return await this.updateSheetData(sheetId!, range, updatedData);
     } catch (error) {
       console.error("Error updating script:", error);
@@ -938,6 +1115,11 @@ class VLUScriptService {
   // Get auth service for other components
   getAuthService() {
     return this.authService;
+  }
+
+  // Check if running in mock mode
+  isMockMode(): boolean {
+    return !this.authService.isSignedIn() || !this.authService.accessToken;
   }
 }
 

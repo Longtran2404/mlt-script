@@ -42,7 +42,17 @@
       "Bash(git filter-branch:*)",
       "Bash(vercel:*)",
       "WebFetch(domain:mlt-script-l7x42efa4-minh-long-trans-projects.vercel.app)",
-      "WebFetch(domain:mlt-script.vercel.app)"
+      "WebFetch(domain:mlt-script.vercel.app)",
+      "WebFetch(domain:docs.google.com)",
+      "Bash(npm uninstall:*)",
+      "Bash(curl:*)",
+      "Bash(cmd /c:*)",
+      "Bash(set PORT=3000)",
+      "Bash(wmic process where processid=7656 get commandline:*)",
+      "Bash(wmic process where processid=7656 delete:*)",
+      "Bash(wmic process where processid=6124 get commandline:*)",
+      "Bash(wmic process where processid=6124 delete:*)",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": []

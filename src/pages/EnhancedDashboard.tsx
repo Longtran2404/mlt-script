@@ -3,30 +3,29 @@ import { motion } from "framer-motion";
 import {
   BarChart3,
   Users,
-  Video,
-  FileText,
-  TrendingUp,
-  Calendar,
-  Clock,
-  Star,
-  Target,
   Activity,
   DollarSign,
-  PlayCircle,
-  Eye,
-  Download,
-  Share2,
-  Plus,
-  Filter,
-  Search,
-  MoreVertical
+  Calendar,
+  Target,
+  Star,
+  Play,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Badge } from "../components/ui/badge";
 import { StatsCard, StatsData } from "../components/ui/stats-card";
-import { googleSheetsService, UserData, ProjectData, AnalyticsData } from "../services/googleSheets";
+import {
+  googleSheetsService,
+  UserData,
+  ProjectData,
+  AnalyticsData,
+} from "../services/googleSheets";
 
 export default function EnhancedDashboard() {
   const [users, setUsers] = useState<UserData[]>([]);
@@ -45,7 +44,7 @@ export default function EnhancedDashboard() {
           googleSheetsService.getProjects(),
           googleSheetsService.getAnalytics(),
         ]);
-        
+
         setUsers(usersData);
         setProjects(projectsData);
         setAnalytics(analyticsData);
@@ -68,15 +67,15 @@ export default function EnhancedDashboard() {
       scriptsCreated: 0,
       newUsers: 0,
       activeUsers: 0,
-      revenue: 0
+      revenue: 0,
     };
 
     const previousAnalytics = analytics[1] || latestAnalytics;
 
     const calculateChange = (current: number, previous: number): string => {
       if (previous === 0) return "+100%";
-      const change = ((current - previous) / previous * 100);
-      return `${change >= 0 ? '+' : ''}${change.toFixed(1)}%`;
+      const change = ((current - previous) / previous) * 100;
+      return `${change >= 0 ? "+" : ""}${change.toFixed(1)}%`;
     };
 
     return [
@@ -84,52 +83,77 @@ export default function EnhancedDashboard() {
         title: "Tổng người dùng",
         value: latestAnalytics.activeUsers.toLocaleString(),
         change: {
-          value: calculateChange(latestAnalytics.activeUsers, previousAnalytics.activeUsers),
-          type: latestAnalytics.activeUsers >= previousAnalytics.activeUsers ? "increase" : "decrease"
+          value: calculateChange(
+            latestAnalytics.activeUsers,
+            previousAnalytics.activeUsers
+          ),
+          type:
+            latestAnalytics.activeUsers >= previousAnalytics.activeUsers
+              ? "increase"
+              : "decrease",
         },
         icon: <Users className="w-6 h-6" />,
         description: `${latestAnalytics.newUsers} người dùng mới hôm nay`,
-        color: "blue" as const
+        color: "blue" as const,
       },
       {
         title: "Video được tạo",
         value: latestAnalytics.videosCreated.toLocaleString(),
         change: {
-          value: calculateChange(latestAnalytics.videosCreated, previousAnalytics.videosCreated),
-          type: latestAnalytics.videosCreated >= previousAnalytics.videosCreated ? "increase" : "decrease"
+          value: calculateChange(
+            latestAnalytics.videosCreated,
+            previousAnalytics.videosCreated
+          ),
+          type:
+            latestAnalytics.videosCreated >= previousAnalytics.videosCreated
+              ? "increase"
+              : "decrease",
         },
-        icon: <Video className="w-6 h-6" />,
+        icon: <BarChart3 className="w-6 h-6" />,
         description: "Video AI chất lượng cao",
-        color: "purple" as const
+        color: "purple" as const,
       },
       {
         title: "Kịch bản hoàn thành",
         value: latestAnalytics.scriptsCreated.toLocaleString(),
         change: {
-          value: calculateChange(latestAnalytics.scriptsCreated, previousAnalytics.scriptsCreated),
-          type: latestAnalytics.scriptsCreated >= previousAnalytics.scriptsCreated ? "increase" : "decrease"
+          value: calculateChange(
+            latestAnalytics.scriptsCreated,
+            previousAnalytics.scriptsCreated
+          ),
+          type:
+            latestAnalytics.scriptsCreated >= previousAnalytics.scriptsCreated
+              ? "increase"
+              : "decrease",
         },
-        icon: <FileText className="w-6 h-6" />,
+        icon: <BarChart3 className="w-6 h-6" />,
         description: "Kịch bản chuyên nghiệp",
-        color: "green" as const
+        color: "green" as const,
       },
       {
         title: "Doanh thu tháng",
         value: `${(latestAnalytics.revenue / 1000000).toFixed(1)}M`,
         change: {
-          value: calculateChange(latestAnalytics.revenue, previousAnalytics.revenue),
-          type: latestAnalytics.revenue >= previousAnalytics.revenue ? "increase" : "decrease"
+          value: calculateChange(
+            latestAnalytics.revenue,
+            previousAnalytics.revenue
+          ),
+          type:
+            latestAnalytics.revenue >= previousAnalytics.revenue
+              ? "increase"
+              : "decrease",
         },
         icon: <DollarSign className="w-6 h-6" />,
         description: "VNĐ",
-        color: "orange" as const
-      }
+        color: "orange" as const,
+      },
     ];
   };
 
-  const filteredProjects = projects.filter(project =>
-    project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    project.description.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredProjects = projects.filter(
+    (project) =>
+      project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const getStatusColor = (status: string) => {
@@ -149,20 +173,29 @@ export default function EnhancedDashboard() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case "completed": return "Hoàn thành";
-      case "in_progress": return "Đang thực hiện";
-      case "draft": return "Bản nháp";
-      case "archived": return "Lưu trữ";
-      default: return status;
+      case "completed":
+        return "Hoàn thành";
+      case "in_progress":
+        return "Đang thực hiện";
+      case "draft":
+        return "Bản nháp";
+      case "archived":
+        return "Lưu trữ";
+      default:
+        return status;
     }
   };
 
   const getProjectTypeIcon = (type: string) => {
     switch (type) {
-      case "video": return <Video className="w-4 h-4" />;
-      case "script": return <FileText className="w-4 h-4" />;
-      case "both": return <PlayCircle className="w-4 h-4" />;
-      default: return <Target className="w-4 h-4" />;
+      case "video":
+        return <BarChart3 className="w-4 h-4" />;
+      case "script":
+        return <BarChart3 className="w-4 h-4" />;
+      case "both":
+        return <Play className="w-4 h-4" />;
+      default:
+        return <Target className="w-4 h-4" />;
     }
   };
 
@@ -194,7 +227,7 @@ export default function EnhancedDashboard() {
             Tổng quan hoạt động và hiệu suất của nền tảng MLT Script AI
           </p>
         </div>
-        
+
         <div className="flex items-center space-x-3">
           <div className="flex bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
             {["24h", "7d", "30d", "90d"].map((period) => (
@@ -211,9 +244,9 @@ export default function EnhancedDashboard() {
               </button>
             ))}
           </div>
-          
+
           <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-            <Plus className="w-4 h-4 mr-2" />
+            <BarChart3 className="w-4 h-4 mr-2" />
             Tạo dự án mới
           </Button>
         </div>
@@ -243,7 +276,7 @@ export default function EnhancedDashboard() {
                   Biểu đồ doanh thu
                 </CardTitle>
                 <Button variant="outline" size="sm">
-                  <Download className="w-4 h-4 mr-2" />
+                  <BarChart3 className="w-4 h-4 mr-2" />
                   Xuất báo cáo
                 </Button>
               </div>
@@ -264,10 +297,10 @@ export default function EnhancedDashboard() {
                       </div>
                       <div>
                         <div className="font-semibold text-gray-900 dark:text-white">
-                          {new Date(data.date).toLocaleDateString('vi-VN', {
-                            weekday: 'long',
-                            month: 'long',
-                            day: 'numeric'
+                          {new Date(data.date).toLocaleDateString("vi-VN", {
+                            weekday: "long",
+                            month: "long",
+                            day: "numeric",
                           })}
                         </div>
                         <div className="text-sm text-gray-500 dark:text-gray-400">
@@ -306,19 +339,31 @@ export default function EnhancedDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full justify-start hover-lift">
-                <Video className="w-4 h-4 mr-2" />
+              <Button
+                variant="outline"
+                className="w-full justify-start hover-lift"
+              >
+                <BarChart3 className="w-4 h-4 mr-2" />
                 Tạo video AI mới
               </Button>
-              <Button variant="outline" className="w-full justify-start hover-lift">
-                <FileText className="w-4 h-4 mr-2" />
+              <Button
+                variant="outline"
+                className="w-full justify-start hover-lift"
+              >
+                <BarChart3 className="w-4 h-4 mr-2" />
                 Viết kịch bản
               </Button>
-              <Button variant="outline" className="w-full justify-start hover-lift">
+              <Button
+                variant="outline"
+                className="w-full justify-start hover-lift"
+              >
                 <Users className="w-4 h-4 mr-2" />
                 Quản lý team
               </Button>
-              <Button variant="outline" className="w-full justify-start hover-lift">
+              <Button
+                variant="outline"
+                className="w-full justify-start hover-lift"
+              >
                 <BarChart3 className="w-4 h-4 mr-2" />
                 Xem analytics
               </Button>
@@ -356,7 +401,9 @@ export default function EnhancedDashboard() {
                     </div>
                   </div>
                   <Badge
-                    variant={user.plan === "enterprise" ? "default" : "secondary"}
+                    variant={
+                      user.plan === "enterprise" ? "default" : "secondary"
+                    }
                     className="text-xs"
                   >
                     {user.plan}
@@ -381,10 +428,10 @@ export default function EnhancedDashboard() {
                 <Target className="w-5 h-5 mr-2 text-green-600" />
                 Dự án gần đây
               </CardTitle>
-              
+
               <div className="flex items-center space-x-3">
                 <div className="relative">
-                  <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <BarChart3 className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                   <Input
                     placeholder="Tìm kiếm dự án..."
                     value={searchQuery}
@@ -393,7 +440,7 @@ export default function EnhancedDashboard() {
                   />
                 </div>
                 <Button variant="outline" size="sm">
-                  <Filter className="w-4 h-4 mr-2" />
+                  <BarChart3 className="w-4 h-4 mr-2" />
                   Lọc
                 </Button>
               </div>
@@ -454,7 +501,11 @@ export default function EnhancedDashboard() {
                         </span>
                       </td>
                       <td className="py-4 px-4">
-                        <Badge className={`${getStatusColor(project.status)} border-none`}>
+                        <Badge
+                          className={`${getStatusColor(
+                            project.status
+                          )} border-none`}
+                        >
                           {getStatusText(project.status)}
                         </Badge>
                       </td>
@@ -474,12 +525,16 @@ export default function EnhancedDashboard() {
                       <td className="py-4 px-4">
                         <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                           <Calendar className="w-4 h-4 mr-1" />
-                          {project.dueDate ? new Date(project.dueDate).toLocaleDateString('vi-VN') : 'N/A'}
+                          {project.dueDate
+                            ? new Date(project.dueDate).toLocaleDateString(
+                                "vi-VN"
+                              )
+                            : "N/A"}
                         </div>
                       </td>
                       <td className="py-4 px-4 text-center">
                         <Button variant="ghost" size="sm">
-                          <MoreVertical className="w-4 h-4" />
+                          <BarChart3 className="w-4 h-4" />
                         </Button>
                       </td>
                     </motion.tr>
@@ -487,7 +542,7 @@ export default function EnhancedDashboard() {
                 </tbody>
               </table>
             </div>
-            
+
             {filteredProjects.length === 0 && (
               <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                 Không tìm thấy dự án nào phù hợp với tìm kiếm của bạn.

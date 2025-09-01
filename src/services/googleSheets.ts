@@ -1,8 +1,4 @@
-import {
-  GOOGLE_SHEETS_CONFIG,
-  SHEET_IDS,
-  SHEET_RANGES,
-} from "../types/sheets.types";
+import { SHEET_IDS, SHEET_RANGES } from "../types/sheets.types";
 
 // Type definitions
 export interface UserData {

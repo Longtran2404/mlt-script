@@ -1,21 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   FileText,
   Play,
   Save,
   Edit,
-  Trash2,
-  Plus,
   Clock,
-  User,
-  Tag,
-  Download,
-  Upload,
   RefreshCw,
   Globe,
   CheckCircle,
-  AlertCircle,
   Search,
   Filter,
 } from "lucide-react";
@@ -29,13 +22,12 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Badge } from "../components/ui/badge";
-import { vluScriptService, googleAuthService } from "../services/googleAuth";
+import { vluScriptService } from "../services/googleAuth";
 import { Script, ScriptScene } from "../types/script.types";
 
 export default function ScriptManager() {
   const [scripts, setScripts] = useState<Script[]>([]);
   const [selectedScript, setSelectedScript] = useState<Script | null>(null);
-  const [editingScene, setEditingScene] = useState<ScriptScene | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -43,9 +35,16 @@ export default function ScriptManager() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [userInfo, setUserInfo] = useState<any>(null);
   const [hasChanges, setHasChanges] = useState(false);
-  const [saveMessage, setSaveMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
-  const [autoSaveTimer, setAutoSaveTimer] = useState<NodeJS.Timeout | null>(null);
-  const [availableSheets, setAvailableSheets] = useState<Array<{id: number, title: string}>>([]);
+  const [saveMessage, setSaveMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+  const [autoSaveTimer, setAutoSaveTimer] = useState<NodeJS.Timeout | null>(
+    null
+  );
+  const [availableSheets, setAvailableSheets] = useState<
+    Array<{ id: number; title: string }>
+  >([]);
   const [selectedSheet, setSelectedSheet] = useState<string>("all");
   const [loadMode, setLoadMode] = useState<"all" | "single">("all");
 
@@ -53,10 +52,15 @@ export default function ScriptManager() {
     if (!isConnected) return;
 
     try {
-      const sheets = await vluScriptService.getAllSheets();
+      console.log("📋 Loading available sheets...");
+      const { googleSheetsService } = await import(
+        "../services/googleSheetsSimple"
+      );
+      const sheets = await googleSheetsService.getAllSheets();
       setAvailableSheets(sheets);
+      console.log("✅ Loaded sheets:", sheets);
     } catch (error) {
-      console.error("Error loading available sheets:", error);
+      console.error("❌ Error loading available sheets:", error);
     }
   }, [isConnected]);
 
@@ -66,18 +70,20 @@ export default function ScriptManager() {
     setLoading(true);
     try {
       let loadedScripts: Script[];
-      
+
       if (loadMode === "all") {
         // Load from all sheets
         loadedScripts = await vluScriptService.loadAllScriptsFromAllSheets();
       } else if (selectedSheet !== "all") {
         // Load from specific sheet
-        loadedScripts = await vluScriptService.loadScriptsFromSheet(selectedSheet);
+        loadedScripts = await vluScriptService.loadScriptsFromSheet(
+          selectedSheet
+        );
       } else {
         // Fallback to default behavior
         loadedScripts = await vluScriptService.loadVLUScripts();
       }
-      
+
       setScripts(loadedScripts);
     } catch (error) {
       console.error("Error loading scripts:", error);
@@ -88,41 +94,97 @@ export default function ScriptManager() {
 
   const checkGoogleConnection = async () => {
     try {
-      await vluScriptService.getAuthService().initialize();
-      const signedIn = vluScriptService.getAuthService().isSignedIn();
-      setIsConnected(signedIn);
+      console.log("🔄 Checking Google Sheets connection...");
 
-      if (signedIn) {
-        const user = vluScriptService.getAuthService().getUserInfo();
-        setUserInfo(user);
+      // Import and test Google Sheets service
+      const { googleSheetsService } = await import(
+        "../services/googleSheetsSimple"
+      );
+      
+      // First check if we have a valid access token
+      const hasToken = localStorage.getItem("google_access_token");
+      
+      if (!hasToken) {
+        console.log("📋 No access token found - trying CSV fallback directly");
+        // Try CSV method even without token
+        try {
+          const csvScripts = await googleSheetsService.loadViaCSV();
+          if (csvScripts.length > 0) {
+            setScripts(csvScripts);
+            setIsConnected(true);
+            setUserInfo({
+              name: "Google Sheets (CSV)",
+              email: "sheets@google.com",
+              imageUrl: "https://via.placeholder.com/40",
+            });
+            console.log("✅ CSV direct fallback successful with", csvScripts.length, "scripts");
+            return;
+          }
+        } catch (csvError) {
+          console.error("❌ CSV direct fallback failed:", csvError);
+        }
+        
+        setIsConnected(false);
+        return;
+      }
+
+      const connected = await googleSheetsService.testConnection();
+
+      if (connected) {
+        setIsConnected(true);
+        setUserInfo({
+          name: "Google Sheets API",
+          email: "sheets@google.com",
+          imageUrl: "https://via.placeholder.com/40",
+        });
+        console.log("✅ Google Sheets connected successfully");
+      } else {
+        console.log("❌ Connection test failed - trying CSV fallback");
+        // Even if connection test fails, try CSV method
+        try {
+          const csvScripts = await googleSheetsService.loadViaCSV();
+          if (csvScripts.length > 0) {
+            setScripts(csvScripts);
+            setIsConnected(true);
+            setUserInfo({
+              name: "Google Sheets (CSV)",
+              email: "sheets@google.com",
+              imageUrl: "https://via.placeholder.com/40",
+            });
+            console.log("✅ CSV fallback successful with", csvScripts.length, "scripts");
+          }
+        } catch (csvError) {
+          console.error("❌ CSV fallback failed:", csvError);
+          setIsConnected(false);
+        }
       }
     } catch (error) {
-      console.error("Error checking Google connection:", error);
+      console.error("❌ Error checking Google connection:", error);
       setIsConnected(false);
-      // Don't throw error to prevent crash
     }
   };
 
   const connectToGoogle = async () => {
     setLoading(true);
     try {
-      // Initialize first
-      await vluScriptService.getAuthService().initialize();
+      console.log("🔄 Connecting to Google Sheets...");
 
-      const success = await vluScriptService.getAuthService().signIn();
-      if (success) {
-        setIsConnected(true);
-        const user = vluScriptService.getAuthService().getUserInfo();
-        setUserInfo(user);
+      // Test connection and load data
+      await checkGoogleConnection();
+
+      if (isConnected) {
         await loadAvailableSheets();
         await loadScripts();
+        console.log(
+          "✅ Successfully connected and loaded data from Google Sheets"
+        );
       } else {
-        alert("Không thể đăng nhập Google. Vui lòng thử lại!");
+        alert("Không thể kết nối Google Sheets. Vui lòng kiểm tra API key!");
       }
     } catch (error) {
-      console.error("Error connecting to Google:", error);
+      console.error("❌ Error connecting to Google Sheets:", error);
       alert(
-        "Lỗi kết nối Google: " +
+        "Lỗi kết nối Google Sheets: " +
           (error instanceof Error ? error.message : "Unknown error")
       );
     } finally {
@@ -144,7 +206,7 @@ export default function ScriptManager() {
 
   useEffect(() => {
     checkGoogleConnection();
-    
+
     // Cleanup auto-save timer on unmount
     return () => {
       if (autoSaveTimer) {
@@ -172,7 +234,7 @@ export default function ScriptManager() {
   const saveScript = async (script: Script) => {
     setSaving(true);
     setSaveMessage(null);
-    
+
     try {
       const success = await vluScriptService.updateScript(script);
       if (success) {
@@ -180,22 +242,30 @@ export default function ScriptManager() {
         setScripts(scripts.map((s) => (s.id === script.id ? script : s)));
         setSelectedScript(script);
         setHasChanges(false);
-        
+
         // Show success message
-        setSaveMessage({ type: 'success', text: '✅ Đã lưu thành công vào Google Sheets!' });
-        
+        setSaveMessage({
+          type: "success",
+          text: "✅ Đã lưu thành công vào Google Sheets!",
+        });
+
         // Clear message after 3 seconds
         setTimeout(() => setSaveMessage(null), 3000);
       } else {
-        setSaveMessage({ type: 'error', text: '❌ Không thể lưu. Vui lòng thử lại!' });
+        setSaveMessage({
+          type: "error",
+          text: "❌ Không thể lưu. Vui lòng thử lại!",
+        });
         setTimeout(() => setSaveMessage(null), 5000);
       }
       return success;
     } catch (error) {
       console.error("Error saving script:", error);
-      setSaveMessage({ 
-        type: 'error', 
-        text: '❌ Lỗi khi lưu: ' + (error instanceof Error ? error.message : 'Unknown error') 
+      setSaveMessage({
+        type: "error",
+        text:
+          "❌ Lỗi khi lưu: " +
+          (error instanceof Error ? error.message : "Unknown error"),
       });
       setTimeout(() => setSaveMessage(null), 5000);
       return false;
@@ -221,17 +291,17 @@ export default function ScriptManager() {
 
     setSelectedScript(updatedScript);
     setHasChanges(true);
-    
+
     // Clear existing auto-save timer
     if (autoSaveTimer) {
       clearTimeout(autoSaveTimer);
     }
-    
+
     // Set new auto-save timer (save after 2 seconds of no changes)
     const newTimer = setTimeout(() => {
       saveScript(updatedScript);
     }, 2000);
-    
+
     setAutoSaveTimer(newTimer);
   };
 
@@ -345,10 +415,9 @@ export default function ScriptManager() {
             Quản lý Kịch bản VLU
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
-            {loadMode === "all" 
+            {loadMode === "all"
               ? `Hiển thị từ ${availableSheets.length} sheet(s) - Tự động phân cảnh theo timestamp`
-              : `Hiển thị từ sheet "${selectedSheet}" - Tự động phân cảnh theo timestamp`
-            }
+              : `Hiển thị từ sheet "${selectedSheet}" - Tự động phân cảnh theo timestamp`}
           </p>
         </div>
 
@@ -434,7 +503,7 @@ export default function ScriptManager() {
               className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white min-w-[150px]"
             >
               <option value="all">📊 Tất cả Sheet</option>
-              {availableSheets.map(sheet => (
+              {availableSheets.map((sheet) => (
                 <option key={sheet.id} value={sheet.title}>
                   📄 {sheet.title}
                 </option>
@@ -568,28 +637,30 @@ export default function ScriptManager() {
                   <div className="flex items-center space-x-3">
                     {/* Save Status */}
                     {saveMessage && (
-                      <div className={`px-3 py-1 rounded-lg text-sm font-medium ${
-                        saveMessage.type === 'success' 
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                          : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                      }`}>
+                      <div
+                        className={`px-3 py-1 rounded-lg text-sm font-medium ${
+                          saveMessage.type === "success"
+                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                            : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                        }`}
+                      >
                         {saveMessage.text}
                       </div>
                     )}
-                    
+
                     {/* Changes indicator */}
                     {hasChanges && !saving && !saveMessage && (
                       <div className="px-3 py-1 rounded-lg bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 text-sm font-medium">
                         💾 Tự động lưu sau 2 giây...
                       </div>
                     )}
-                    
+
                     <Button
                       onClick={() => saveScript(selectedScript)}
                       disabled={saving}
                       className={`${
-                        hasChanges 
-                          ? "bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700" 
+                        hasChanges
+                          ? "bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
                           : "bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
                       }`}
                     >

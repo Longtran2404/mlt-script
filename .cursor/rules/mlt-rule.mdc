@@ -1,398 +1,230 @@
 ---
-description: Claude Code coding standards cho MLT Script AI Platform
-globs: src/**/*.tsx, src/**/*.ts, *.json, *.md
+description: Universal Cursor Rules for Claude Sonnet 4.0 - All Projects
+globs: "**/*.{ts,tsx,js,jsx,py,java,go,rs,php,rb,swift,kt,dart,vue,svelte,html,css,scss,json,yaml,yml,md,sql,sh}"
 alwaysApply: true
 ---
 
-# 🎯 Claude Code Universal Standards
+# 🎯 Universal Claude Sonnet 4.0 Cursor Rules
 
-## Context
+## Core Principles for All Projects
 
-- Universal coding standards based on official Anthropic Claude Code documentation
-- Designed for any project type (React, Vue, Node.js, Python, etc.)
-- Follows Claude Code's professional coding patterns and conventions
-- Ensures consistent, maintainable, and production-ready code across all projects
+### **🧠 Thinking Mode Instructions**
+- **Think step-by-step** before coding - analyze requirements, edge cases, and optimal solutions
+- **Consider multiple approaches** - evaluate pros/cons before implementation
+- **Plan before coding** - outline the solution structure and data flow
+- **Anticipate issues** - think about potential bugs, performance issues, and user experience
+- **Self-review** - double-check logic, types, and best practices after writing code
 
-## 🎯 Claude Code Core Principles
+### **⚡ Code Quality Imperatives**
+- **TypeScript-first** - Strong typing, no `any` types unless absolutely necessary
+- **Functional programming** - Prefer pure functions, immutability, and composition
+- **Performance-conscious** - Optimize for bundle size, runtime performance, and user experience
+- **Error-resilient** - Comprehensive error handling, validation, and graceful degradation
+- **Self-documenting** - Clear naming, logical structure, minimal but meaningful comments
 
-### **📝 Code Documentation & Comments**
+### **🔧 Language & Framework Specific Standards**
 
-- **Self-documenting code** - Write clear, descriptive variable and function names
-- **Minimal comments** - Only comment when logic is complex or non-obvious
-- **JSDoc/TSDoc** - Use proper documentation for public APIs and interfaces
-- **README documentation** - Maintain comprehensive project documentation
-- **Inline documentation** - Document complex algorithms and business logic
+#### **Frontend (React/Vue/Angular/Svelte)**
+- **Modern patterns** - Functional components, hooks, composition API
+- **Performance optimization** - Memoization, lazy loading, code splitting
+- **Accessibility first** - Semantic HTML, ARIA labels, keyboard navigation
+- **Mobile-responsive** - Mobile-first design, proper breakpoints
 
-### **🔧 Language-Agnostic Standards**
+#### **Backend (Node.js/Python/Java/Go/Rust)**
+- **API design** - RESTful conventions, proper HTTP status codes
+- **Database patterns** - Connection pooling, proper ORM usage, migrations
+- **Security** - Input validation, authentication, authorization
+- **Performance** - Caching, query optimization, async/await patterns
 
-- **Type safety** - Use TypeScript, Python type hints, or similar type systems
-- **Consistent naming** - Follow language-specific conventions (camelCase, snake_case, etc.)
-- **Error handling** - Implement comprehensive error handling with try/catch or similar
-- **Input validation** - Validate all user inputs and external data
-- **Code organization** - Use proper file structure and module organization
+#### **Mobile (React Native/Flutter/Swift/Kotlin)**
+- **Platform conventions** - Follow iOS/Android design guidelines
+- **Performance** - Optimize for mobile constraints, battery usage
+- **Navigation** - Use platform-appropriate navigation patterns
+- **State management** - Context, Redux, MobX for complex apps
 
-### **⚛️ Frontend Standards (React/Vue/Angular)**
+## 💡 Universal Code Examples for Claude Sonnet 4.0
 
-- **Component architecture** - Use functional components with hooks (React) or composition API (Vue)
-- **State management** - Implement proper state management patterns
-- **Performance optimization** - Use memoization, lazy loading, and code splitting
-- **Accessibility** - Follow WCAG guidelines and implement ARIA attributes
-- **Responsive design** - Mobile-first approach with proper breakpoints
-
-### **🔗 Backend Standards (Node.js/Python/Java)**
-
-- **API design** - Follow RESTful conventions or GraphQL best practices
-- **Database patterns** - Use proper ORM patterns and connection management
-- **Security** - Implement authentication, authorization, and input sanitization
-- **Logging** - Use structured logging with appropriate log levels
-- **Testing** - Write unit tests, integration tests, and API tests
-
-### **📊 Data Management**
-
-- **Data validation** - Use schemas (Zod, Joi, Pydantic) for runtime validation
-- **Caching strategies** - Implement appropriate caching (Redis, in-memory, CDN)
-- **Database design** - Follow normalization principles and proper indexing
-- **API responses** - Use consistent response formats and status codes
-- **Error responses** - Provide meaningful error messages and codes
-
-### **🚀 Performance & Optimization**
-
-- **Code splitting** - Implement lazy loading for routes and components
-- **Bundle optimization** - Minimize bundle size and optimize imports
-- **Database queries** - Optimize queries and use proper indexing
-- **Caching** - Implement appropriate caching strategies
-- **Monitoring** - Use performance monitoring and error tracking
-
-## 📋 Universal Code Examples
-
-<example>
-  // ✅ Claude Code Standard: Clean, typed, and maintainable
-  interface User {
-    id: string;
-    name: string;
-    email: string;
-    createdAt: Date;
-  }
-
-interface CreateUserRequest {
-name: string;
-email: string;
+### **✅ TypeScript/JavaScript (Frontend)**
+```typescript
+interface ApiResult<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
 }
 
-interface ApiResponse<T> {
-success: boolean;
-data?: T;
-error?: string;
-}
-
-class UserService {
-async createUser(request: CreateUserRequest): Promise<ApiResponse<User>> {
-try {
-// Validate input
-if (!request.name || !request.email) {
-return {
-success: false,
-error: 'Name and email are required'
-};
-}
-
-        // Validate email format
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(request.email)) {
-          return {
-            success: false,
-            error: 'Invalid email format'
-          };
-        }
-
-        // Create user logic
-        const user: User = {
-          id: generateId(),
-          name: request.name,
-          email: request.email,
-          createdAt: new Date()
-        };
-
-        // Save to database (simplified)
-        await this.saveUser(user);
-
-        return {
-          success: true,
-          data: user
-        };
-      } catch (error) {
-        console.error('Failed to create user:', error);
-        return {
-          success: false,
-          error: 'Internal server error'
-        };
-      }
-    }
-
-    private async saveUser(user: User): Promise<void> {
-      // Database save implementation
-    }
-
-}
-
-// React Component Example
-interface UserFormProps {
-onSubmit: (user: CreateUserRequest) => Promise<void>;
-isLoading?: boolean;
-}
-
-export default function UserForm({ onSubmit, isLoading = false }: UserFormProps) {
-const [formData, setFormData] = useState<CreateUserRequest>({
-name: '',
-email: ''
-});
-const [errors, setErrors] = useState<Record<string, string>>({});
-
-    const handleSubmit = async (event: React.FormEvent) => {
-      event.preventDefault();
-      setErrors({});
-
-      // Client-side validation
-      const newErrors: Record<string, string> = {};
-      if (!formData.name.trim()) {
-        newErrors.name = 'Name is required';
-      }
-      if (!formData.email.trim()) {
-        newErrors.email = 'Email is required';
-      }
-
-      if (Object.keys(newErrors).length > 0) {
-        setErrors(newErrors);
-        return;
-      }
-
-      try {
-        await onSubmit(formData);
-      } catch (error) {
-        console.error('Form submission failed:', error);
-      }
-    };
-
-    const handleInputChange = (field: keyof CreateUserRequest) => (
-      event: React.ChangeEvent<HTMLInputElement>
-    ) => {
-      setFormData(prev => ({
-        ...prev,
-        [field]: event.target.value
-      }));
-      // Clear error when user starts typing
-      if (errors[field]) {
-        setErrors(prev => ({ ...prev, [field]: '' }));
-      }
-    };
-
-    return (
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium">
-            Name
-          </label>
-          <input
-            id="name"
-            type="text"
-            value={formData.name}
-            onChange={handleInputChange('name')}
-            className={`mt-1 block w-full rounded-md border ${
-              errors.name ? 'border-red-500' : 'border-gray-300'
-            }`}
-            disabled={isLoading}
-          />
-          {errors.name && (
-            <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-          )}
-        </div>
-
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium">
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            value={formData.email}
-            onChange={handleInputChange('email')}
-            className={`mt-1 block w-full rounded-md border ${
-              errors.email ? 'border-red-500' : 'border-gray-300'
-            }`}
-            disabled={isLoading}
-          />
-          {errors.email && (
-            <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-          )}
-        </div>
-
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50"
-        >
-          {isLoading ? 'Creating...' : 'Create User'}
-        </button>
-      </form>
-    );
-
-}
-</example>
-
-<example type="invalid">
-  // ❌ Anti-patterns: Poor typing, no error handling, unclear naming
-  function createUser(data) {
-    const user = {
-      id: Math.random().toString(),
-      name: data.name,
-      email: data.email,
-      date: new Date()
-    };
-    
-    fetch('/api/users', {
-      method: 'POST',
-      body: JSON.stringify(user)
-    }).then(res => {
-      console.log('User created:', res);
+const fetchData = async <T>(url: string): Promise<ApiResult<T>> => {
+  try {
+    const response = await fetch(url, {
+      headers: { 'Content-Type': 'application/json' }
     });
-  }
-
-function UserForm(props) {
-const [data, setData] = useState({});
-const [loading, setLoading] = useState(false);
-
-    const submit = () => {
-      setLoading(true);
-      createUser(data);
-      setLoading(false);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json() as T;
+    return { success: true, data };
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
     };
+  }
+};
+```
 
-    return (
-      <div>
-        <input
-          value={data.name || ''}
-          onChange={e => setData({...data, name: e.target.value})}
-        />
-        <input
-          value={data.email || ''}
-          onChange={e => setData({...data, email: e.target.value})}
-        />
-        <button onClick={submit} disabled={loading}>
-          {loading ? 'Loading...' : 'Save'}
-        </button>
-      </div>
-    );
+### **✅ Python (Backend)**
+```python
+from typing import Optional, Dict, Any
+import logging
 
+class ApiResult:
+    def __init__(self, success: bool, data: Optional[Any] = None, error: Optional[str] = None):
+        self.success = success
+        self.data = data
+        self.error = error
+
+async def create_user(user_data: Dict[str, Any]) -> ApiResult:
+    try:
+        # Validate input
+        if not user_data.get('email') or not user_data.get('name'):
+            return ApiResult(False, error="Email and name are required")
+        
+        # Process user creation
+        result = await database.create_user(user_data)
+        return ApiResult(True, data=result)
+        
+    except Exception as e:
+        logging.error(f"User creation failed: {e}")
+        return ApiResult(False, error=str(e))
+```
+
+### **✅ Go (Backend)**
+```go
+type ApiResult struct {
+    Success bool        `json:"success"`
+    Data    interface{} `json:"data,omitempty"`
+    Error   string      `json:"error,omitempty"`
 }
-</example>
 
-## 🛠️ Universal Development Workflow
+func CreateUser(userData map[string]interface{}) ApiResult {
+    if userData["email"] == nil || userData["name"] == nil {
+        return ApiResult{
+            Success: false,
+            Error:   "Email and name are required",
+        }
+    }
+    
+    result, err := database.CreateUser(userData)
+    if err != nil {
+        log.Printf("User creation failed: %v", err)
+        return ApiResult{
+            Success: false,
+            Error:   err.Error(),
+        }
+    }
+    
+    return ApiResult{
+        Success: true,
+        Data:    result,
+    }
+}
+```
 
-### **1. Project Setup**
+### **❌ Universal Anti-patterns**
+```typescript
+// No error handling, poor typing
+function getData(url) {
+  fetch(url).then(response => response.json()).then(console.log);
+}
 
-- Initialize with appropriate language/framework
-- Configure linting and formatting tools
-- Set up testing framework
-- Configure build tools and CI/CD
-- Set up environment management
+// No validation, unclear logic
+const processUser = (data: any) => {
+  if (data.email) {
+    return data;
+  }
+};
+```
 
-### **2. Development Process**
+## 🚀 Universal Development Excellence
 
-- Write tests first (TDD approach)
-- Implement features with proper typing
-- Review code for performance and security
-- Document complex logic and APIs
-- Follow git workflow best practices
+### **🧠 Enhanced Thinking Process**
+- **Deep analysis first** - Analyze requirements, constraints, and optimal solutions
+- **Architecture consideration** - Think about scalability, maintainability, and performance
+- **Edge case identification** - Anticipate and handle edge cases proactively
+- **Code review mindset** - Self-review code as if reviewing someone else's work
+- **Cross-platform compatibility** - Consider different environments and platforms
 
-### **3. Code Review Standards**
+### **⚡ Quality Requirements (All Languages)**
+- **Strong typing** - Use type systems (TypeScript, Python type hints, Rust types, etc.)
+- **Comprehensive error handling** - Every operation that can fail must handle errors
+- **Performance optimization** - Memory usage, algorithmic efficiency, caching strategies
+- **Security first** - Input validation, authentication, secure coding practices
+- **Testing coverage** - Unit tests, integration tests, end-to-end tests
 
-- Check for type errors and linting issues
-- Verify code organization and structure
-- Review error handling and edge cases
-- Assess performance impact
-- Validate security considerations
+### **🔧 Universal Best Practices**
+- **Consistent naming conventions** - Follow language-specific standards
+- **Modular architecture** - Separation of concerns, single responsibility principle
+- **Documentation** - Clear README, API docs, inline comments for complex logic
+- **Version control** - Meaningful commits, proper branching strategy
+- **Environment management** - Configuration management, secrets handling
 
-### **4. Deployment Pipeline**
+## 🎯 Universal Development Workflow
 
-- Run type checking and linting
-- Execute test suite
-- Build and optimize project
-- Deploy with proper environment variables
-- Monitor deployment and performance
+### **Pre-deployment Checklist (adapt for your stack)**
+```bash
+# Frontend (React/Vue/Angular)
+npm run build && npm run test && npm run lint
 
-## 🔧 Universal Tools & Integrations
+# Backend (Node.js)
+npm run build && npm test && npm run lint
 
-### **Essential Tools**
+# Python
+python -m pytest && python -m flake8 . && python -m mypy .
 
-- **Type checking** - TypeScript, mypy, ESLint, etc.
-- **Code formatting** - Prettier, Black, gofmt, etc.
-- **Testing framework** - Jest, pytest, JUnit, etc.
-- **Version control** - Git with proper branching strategy
-- **CI/CD** - GitHub Actions, GitLab CI, Jenkins, etc.
+# Go  
+go test ./... && go vet ./... && golint ./...
 
-### **Claude Code Specific Tools**
+# Java
+mvn clean test && mvn checkstyle:check
 
-- **TodoWrite tool** - Use for multi-step tasks and complex implementations
-- **MCP integration** - Model Context Protocol for external tool integration
-- **Code generation** - Leverage Claude's code generation capabilities
-- **Refactoring assistance** - Use Claude for code optimization and restructuring
+# Rust
+cargo test && cargo clippy && cargo fmt --check
+```
 
-### **Recommended Libraries**
+### **Universal Code Quality Standards**
+- **No debug statements** in production (console.log, print(), fmt.Println(), etc.)
+- **Strong typing** - Avoid `any`, `Object`, `interface{}`, dynamic types
+- **Consistent naming** - Follow language conventions (camelCase, snake_case, PascalCase)
+- **Error handling** - Handle all possible error conditions gracefully
+- **Resource management** - Proper cleanup of connections, files, memory
 
-- **Validation** - Zod, Joi, Pydantic, etc.
-- **HTTP clients** - Axios, requests, fetch, etc.
-- **Database ORMs** - Prisma, SQLAlchemy, Hibernate, etc.
-- **State management** - Redux, Zustand, Pinia, etc.
-- **UI libraries** - React, Vue, Angular, etc.
+### **Security & Best Practices (All Projects)**
+- **Input validation** - Sanitize and validate all user inputs
+- **Environment secrets** - Never hardcode API keys, passwords, tokens
+- **Secure communications** - Use HTTPS/TLS for all external calls
+- **Authentication/Authorization** - Verify permissions before sensitive operations
+- **Logging** - Don't log sensitive data, use structured logging
 
-## 🚀 Universal Performance Standards
+## 📋 Universal Deployment & Monitoring
 
-### **Frontend Performance**
+### **Build & Deployment**
+- **Automated builds** - CI/CD pipelines for consistent deployments
+- **Environment separation** - dev, staging, production configurations
+- **Health checks** - Implement proper health/status endpoints
+- **Rollback strategy** - Plan for quick rollbacks if issues arise
 
-- **Bundle size** - Keep main bundle under 250KB
-- **Core Web Vitals** - LCP < 2.5s, FID < 100ms, CLS < 0.1
-- **Code splitting** - Implement lazy loading
-- **Image optimization** - Use next-gen formats and lazy loading
+### **Monitoring & Observability**
+- **Logging** - Structured logs with appropriate levels
+- **Metrics** - Track performance, errors, and usage patterns  
+- **Alerting** - Set up alerts for critical issues
+- **Documentation** - Maintain deployment and runbook documentation
 
-### **Backend Performance**
+## 🎨 Universal UI/UX Principles
 
-- **Response time** - API responses under 200ms
-- **Database queries** - Optimize with proper indexing
-- **Caching** - Implement appropriate caching strategies
-- **Monitoring** - Use APM tools for performance tracking
-
-### **Security Standards**
-
-- **Input validation** - Validate all inputs
-- **Authentication** - Implement secure auth systems
-- **Authorization** - Use proper role-based access control
-- **Data encryption** - Encrypt sensitive data
-- **HTTPS** - Use SSL/TLS for all communications
-
-## 📚 Universal Documentation Standards
-
-### **Code Documentation**
-
-- **API documentation** - Use OpenAPI/Swagger or similar
-- **Inline comments** - Document complex logic
-- **README files** - Comprehensive project setup guides
-- **Architecture docs** - System design and architecture
-
-### **Git Practices**
-
-- **Conventional commits** - Follow commit message conventions
-- **Feature branches** - Use proper branching strategy
-- **Pull requests** - Require code reviews
-- **Automated testing** - Run tests on every PR
-
-### **Project Structure**
-
-- **Clear organization** - Logical file and folder structure
-- **Separation of concerns** - Separate business logic from presentation
-- **Configuration management** - Use environment variables
-- **Dependency management** - Keep dependencies updated and secure
-
-- Always run `npm run build` before deployment
-- Fix ALL TypeScript errors and warnings
-- Use proper git commit messages with emojis
-- Deploy via `git push` for automatic Vercel deployment
+### **User Experience**
+- **Responsive design** - Works on all screen sizes and devices
+- **Loading states** - Show progress for long-running operations
+- **Error states** - Clear, helpful error messages and recovery options
+- **Accessibility** - Follow WCAG guidelines, keyboard navigation
+- **Performance** - Optimize for fast load times and smooth interactions

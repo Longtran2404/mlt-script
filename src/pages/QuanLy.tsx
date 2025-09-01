@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import ConnectionStatus from "../components/ConnectionStatus";
+import GoogleConnectButton from "../components/GoogleConnectButton";
 
 interface SheetData {
   id: string;
@@ -28,84 +30,147 @@ export default function QuanLy() {
   const [editValue, setEditValue] = useState("");
   const [activeTab, setActiveTab] = useState("projects");
 
-  // Load sheet data from Google Sheets API (mock for now)
+  // Load sheet data from Google Sheets API
   const loadSheetData = async () => {
     setLoading(true);
     try {
-      // Mock data cho demo - trong thực tế sẽ gọi Google Sheets API
-      const mockSheet: SheetData = {
-        id: "1Q43gGNkseRl5dZDnenhNVvJCf7cappiKykCraqL-B-A",
+      console.log("🔄 Loading real Google Sheets data...");
+      
+      // Import Google Sheets service
+      const { googleSheetsService } = await import("../services/googleSheetsSimple");
+      
+      // Test connection first
+      const connectionTest = await googleSheetsService.testConnection();
+      if (!connectionTest) {
+        console.error("❌ Google Sheets connection failed");
+        throw new Error("Không thể kết nối đến Google Sheets. Vui lòng kiểm tra cấu hình.");
+      }
+
+      // Get all sheets
+      const sheets = await googleSheetsService.getAllSheets();
+      console.log("✅ Found sheets:", sheets);
+
+      if (sheets.length === 0) {
+        throw new Error("Không tìm thấy sheets nào trong spreadsheet");
+      }
+
+      // Create sheet data structure
+      const sheetInfo: SheetData = {
+        id: process.env.REACT_APP_VLU_SCRIPT_SHEET_ID || "",
         name: "MLT - KỊCH BẢN",
-        sheetUrl:
-          "https://docs.google.com/spreadsheets/d/1Q43gGNkseRl5dZDnenhNVvJCf7cappiKykCraqL-B-A/edit",
-        sheets: [
-          { properties: { sheetId: 0, title: "Kịch bản Video", index: 0 } },
-          { properties: { sheetId: 1, title: "Tuyển sinh 2025", index: 1 } },
-          { properties: { sheetId: 2, title: "Đào tạo", index: 2 } },
-        ],
+        sheetUrl: `https://docs.google.com/spreadsheets/d/${process.env.REACT_APP_VLU_SCRIPT_SHEET_ID}/edit`,
+        sheets: sheets.map(sheet => ({
+          properties: {
+            sheetId: sheet.id,
+            title: sheet.title,
+            index: 0
+          }
+        }))
       };
 
-      setSelectedSheet(mockSheet);
-      setSheetTabs(mockSheet.sheets || []);
-      setSelectedTab(mockSheet.sheets?.[0]?.properties.title || "");
+      setSelectedSheet(sheetInfo);
+      setSheetTabs(sheetInfo.sheets || []);
+      setSelectedTab(sheetInfo.sheets?.[0]?.properties.title || "");
 
-      // Mock sheet data
-      setSheetData([
-        [
-          "STT",
-          "Dịch vụ",
-          "Tone",
-          "Thời lượng",
-          "Kịch bản",
-          "Trạng thái",
-          "Ngày tạo",
-        ],
-        [
-          "1",
-          "Tuyển sinh 2025",
-          "Thân thiện - Chuyên nghiệp",
-          "3:00",
-          "Nhân vật: Phụ huynh & Cố vấn...",
-          "Hoàn thành",
-          "13/08/2025",
-        ],
-        [
-          "2",
-          "Đào tạo",
-          "Năng động - Truyền cảm hứng",
-          "2:30",
-          "Giới thiệu chương trình đào tạo...",
-          "Đang xử lý",
-          "13/08/2025",
-        ],
-        [
-          "3",
-          "Nghiên cứu",
-          "Chuyên nghiệp - Học thuật",
-          "5:00",
-          "Thành tựu nghiên cứu MLT...",
-          "Hoàn thành",
-          "12/08/2025",
-        ],
-      ]);
+      // Load data from first sheet
+      if (sheets.length > 0) {
+        console.log("📊 Loading data from first sheet:", sheets[0].title);
+        const firstSheetData = await googleSheetsService.getSheetData(sheets[0].title);
+        console.log("✅ Sheet data loaded:", firstSheetData.length, "rows");
+        setSheetData(firstSheetData);
+      }
+
     } catch (error) {
-      // console.error("Lỗi tải dữ liệu:", error);
+      console.error("❌ Error loading sheet data:", error);
+      // Fallback to CSV method
+      try {
+        console.log("🔄 Trying CSV fallback...");
+        const { googleSheetsService } = await import("../services/googleSheetsSimple");
+        const csvScripts = await googleSheetsService.loadViaCSV();
+        
+        // Convert scripts to sheet data format for display
+        if (csvScripts.length > 0) {
+          const csvData = [
+            ["STT", "Timestamp", "Nội dung", "Mô tả", "Ghi chú", "Action"],
+            ...csvScripts.flatMap(script => 
+              script.scenes.map((scene, index) => [
+                (index + 1).toString(),
+                scene.timestampString,
+                scene.content,
+                scene.description || "",
+                scene.notes || "",
+                scene.action || ""
+              ])
+            )
+          ];
+          setSheetData(csvData);
+          
+          // Set mock sheet info
+          const fallbackSheet: SheetData = {
+            id: process.env.REACT_APP_VLU_SCRIPT_SHEET_ID || "",
+            name: "MLT - KỊCH BẢN (CSV)",
+            sheetUrl: `https://docs.google.com/spreadsheets/d/${process.env.REACT_APP_VLU_SCRIPT_SHEET_ID}/edit`,
+            sheets: [{ properties: { sheetId: 0, title: "CSV Data", index: 0 } }]
+          };
+          setSelectedSheet(fallbackSheet);
+          setSheetTabs(fallbackSheet.sheets || []);
+          setSelectedTab("CSV Data");
+          
+          console.log("✅ CSV fallback successful");
+        } else {
+          throw new Error("No data available via CSV method");
+        }
+      } catch (csvError) {
+        console.error("❌ CSV fallback also failed:", csvError);
+        alert("Không thể tải dữ liệu từ Google Sheets. Vui lòng kiểm tra:\n1. Kết nối internet\n2. Sheet có được chia sẻ công khai\n3. Sheet ID đúng: " + (process.env.REACT_APP_VLU_SCRIPT_SHEET_ID || "chưa cấu hình"));
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Load data from specific sheet tab
+  const loadSheetTabData = async (tabTitle: string) => {
+    if (!selectedSheet) return;
+    
+    try {
+      console.log("📊 Loading data from tab:", tabTitle);
+      const { googleSheetsService } = await import("../services/googleSheetsSimple");
+      const tabData = await googleSheetsService.getSheetData(tabTitle);
+      console.log("✅ Tab data loaded:", tabData.length, "rows");
+      setSheetData(tabData);
+      setSelectedTab(tabTitle);
+    } catch (error) {
+      console.error("❌ Error loading tab data:", error);
+      alert("Không thể tải dữ liệu từ tab: " + tabTitle);
     }
   };
 
   // Update cell value
   const updateCell = async (row: number, col: number, value: string) => {
     try {
-      // Mock update - trong thực tế sẽ gọi Google Sheets API
+      // Update local data immediately for UI responsiveness
       const newData = [...sheetData];
       newData[row][col] = value;
       setSheetData(newData);
       setEditingCell(null);
       setEditValue("");
+      
+      // TODO: Implement real Google Sheets update
+      console.log("📝 Cell updated locally - future: sync with Google Sheets");
     } catch (error) {
-      // console.error("Lỗi cập nhật:", error);
+      console.error("❌ Error updating cell:", error);
+    }
+  };
+
+  // Reload data when Google connection status changes
+  const handleGoogleConnect = (connected: boolean) => {
+    console.log("🔄 Google connection status changed:", connected);
+    if (connected) {
+      // Reload sheet data when Google is connected
+      setTimeout(() => {
+        loadSheetData();
+      }, 1000); // Give time for token to be saved
     }
   };
 
@@ -336,7 +401,7 @@ export default function QuanLy() {
                     {sheetTabs.map((tab, index) => (
                       <button
                         key={index}
-                        onClick={() => setSelectedTab(tab.properties.title)}
+                        onClick={() => loadSheetTabData(tab.properties.title)}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                           selectedTab === tab.properties.title
                             ? "bg-mlt-red text-white"
@@ -536,6 +601,32 @@ export default function QuanLy() {
             </h2>
 
             <div className="space-y-6">
+              {/* Google Connection */}
+              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-6 mb-6">
+                <h3 className="text-lg font-semibold text-mlt-ink dark:text-white mb-4">
+                  Kết nối Google Account
+                </h3>
+                <div className="space-y-4">
+                  <p className="text-sm text-mlt-ink/70 dark:text-gray-400">
+                    Kết nối với Google để truy cập Google Sheets và tải dữ liệu kịch bản.
+                  </p>
+                  <GoogleConnectButton 
+                    onConnect={handleGoogleConnect}
+                    className="w-full"
+                  />
+                </div>
+              </div>
+
+              {/* Connection Status */}
+              <div className="mb-6">
+                <ConnectionStatus
+                  showDetails={true}
+                  autoRefresh={true}
+                  refreshInterval={30000}
+                  className="w-full"
+                />
+              </div>
+
               <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-6">
                 <h3 className="text-lg font-semibold text-mlt-ink dark:text-white mb-4">
                   Cài đặt Google Sheets
