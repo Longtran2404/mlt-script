@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Star, Clock, DollarSign, Sparkles } from "lucide-react";
+import { X, Star, Clock, DollarSign, Sparkles, ArrowRight, CheckCircle } from "lucide-react";
 import { cn } from "../lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
@@ -34,16 +34,15 @@ export default function EnhancedServiceCard({
 }: EnhancedServiceCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isFlipping, setIsFlipping] = useState(false);
+  const [isFlipped, setIsFlipped] = useState(false);
 
   const handleCardClick = () => {
-    setIsFlipping(true);
+    setIsFlipped(!isFlipped);
     
-    // Hiệu ứng quay vài vòng trước khi mở
+    // Auto flip back after 3 seconds
     setTimeout(() => {
-      setIsExpanded(true);
-      setIsFlipping(false);
-    }, 1200);
+      setIsFlipped(false);
+    }, 3000);
     
     if (onSelect) {
       onSelect(svc);
@@ -51,9 +50,7 @@ export default function EnhancedServiceCard({
   };
 
   const handleMouseEnter = () => {
-    if (!isFlipping) {
-      setIsHovered(true);
-    }
+    setIsHovered(true);
   };
 
   const handleMouseLeave = () => {
@@ -72,46 +69,30 @@ export default function EnhancedServiceCard({
 
   return (
     <>
-      {/* Main Card */}
-      <motion.div
+      {/* 3D Flip Card Container */}
+      <div
         className={cn(
-          "relative w-full h-80 cursor-pointer perspective-1000 group",
+          "relative w-full h-80 cursor-pointer perspective-1000",
           className
         )}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onClick={handleCardClick}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        whileHover={{ 
-          scale: isFlipping ? 1 : 1.02,
-          transition: { duration: 0.2 }
-        }}
-        whileTap={{ scale: 0.98 }}
-        transition={{ 
-          duration: 0.3,
-          type: "spring", 
-          stiffness: 200,
-          damping: 20 
-        }}
       >
-        {/* 3D Flip Container */}
+        {/* 3D Flip Card */}
         <motion.div
           className="relative w-full h-full preserve-3d"
           animate={{
-            rotateY: isFlipping 
-              ? [0, 180, 360, 540, 720] 
-              : isHovered 
-                ? 15 
-                : 0,
-            rotateX: isFlipping ? [0, 10, -10, 5, 0] : 0,
+            rotateY: isFlipped ? 180 : 0,
           }}
           transition={{
-            duration: isFlipping ? 1.2 : 0.6,
-            ease: isFlipping ? "easeInOut" : "easeOut",
-            times: isFlipping ? [0, 0.25, 0.5, 0.75, 1] : undefined,
+            duration: 0.8,
+            ease: "easeInOut",
           }}
-          style={{ transformStyle: "preserve-3d" }}
+          style={{ 
+            transformStyle: "preserve-3d",
+            transform: `rotateY(${isFlipped ? 180 : 0}deg)`
+          }}
         >
           {/* Front Side */}
           <div
@@ -123,6 +104,7 @@ export default function EnhancedServiceCard({
               "p-6 overflow-hidden",
               "transition-all duration-300 ease-in-out"
             )}
+            style={{ backfaceVisibility: "hidden" }}
           >
             {/* Animated Background Pattern */}
             <motion.div 
@@ -245,13 +227,13 @@ export default function EnhancedServiceCard({
               </div>
             </motion.div>
 
-            {/* Hover Instruction */}
+            {/* Flip Instruction */}
             <motion.div
               className="absolute bottom-2 right-2 text-xs text-gray-400 dark:text-gray-500"
               animate={{ opacity: isHovered ? 1 : 0.6 }}
               transition={{ duration: 0.2 }}
             >
-              Click để xem chi tiết
+              Click để lật card
             </motion.div>
 
             {/* Selection Indicator */}
@@ -296,8 +278,116 @@ export default function EnhancedServiceCard({
               transition={{ duration: 0.3 }}
             />
           </div>
+
+          {/* Back Side */}
+          <div
+            className={cn(
+              "absolute w-full h-full backface-hidden",
+              "bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600",
+              "rounded-2xl shadow-xl border border-blue-500/50",
+              "p-6 overflow-hidden",
+              "text-white"
+            )}
+            style={{ 
+              backfaceVisibility: "hidden",
+              transform: "rotateY(180deg)"
+            }}
+          >
+            {/* Back Background Pattern */}
+            <motion.div 
+              className="absolute inset-0 opacity-20"
+              animate={{
+                background: [
+                  "radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3) 0%, transparent 50%)",
+                  "radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.3) 0%, transparent 50%)",
+                  "radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.3) 0%, transparent 50%)",
+                  "radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.3) 0%, transparent 50%)",
+                ]
+              }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            />
+
+            {/* Back Content */}
+            <div className="relative z-10 h-full flex flex-col justify-center items-center text-center">
+              <motion.div 
+                className="text-6xl mb-4"
+                animate={{
+                  scale: [1, 1.1, 1],
+                  rotate: [0, 5, -5, 0],
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                {svc.icon}
+              </motion.div>
+              
+              <motion.h3 
+                className="text-xl font-bold mb-3"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                Chi tiết dịch vụ
+              </motion.h3>
+              
+              <motion.p 
+                className="text-sm opacity-90 mb-6 line-clamp-3"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                {contentDetails.details || svc.description}
+              </motion.p>
+
+              {/* Features Preview */}
+              <motion.div 
+                className="space-y-2 mb-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                {svc.features.slice(0, 3).map((feature, index) => (
+                  <motion.div
+                    key={index}
+                    className="flex items-center gap-2 text-sm opacity-90"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.5 + index * 0.1 }}
+                  >
+                    <CheckCircle className="w-4 h-4 text-green-300" />
+                    <span>{feature}</span>
+                  </motion.div>
+                ))}
+              </motion.div>
+
+              {/* Action Button */}
+              <motion.button
+                className="flex items-center gap-2 bg-white/20 backdrop-blur-sm hover:bg-white/30 px-4 py-2 rounded-lg transition-all duration-300"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsExpanded(true);
+                }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+              >
+                <span className="text-sm font-medium">Xem chi tiết</span>
+                <ArrowRight className="w-4 h-4" />
+              </motion.button>
+
+              {/* Flip Back Instruction */}
+              <motion.div
+                className="absolute bottom-2 right-2 text-xs opacity-70"
+                animate={{ opacity: [0.7, 1, 0.7] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                Click để lật lại
+              </motion.div>
+            </div>
+          </div>
         </motion.div>
-      </motion.div>
+      </div>
 
       {/* Enhanced Modal Dialog */}
       <Dialog open={isExpanded} onOpenChange={setIsExpanded}>
