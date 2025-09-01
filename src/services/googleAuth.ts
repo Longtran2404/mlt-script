@@ -861,33 +861,52 @@ class VLUScriptService {
       
       // Create a copy of the data to update
       const updatedData = [...allData];
+      let updatedRowsCount = 0;
+      
+      console.log(`Processing ${script.scenes.length} scenes for updates`);
       
       // Update each scene in the script based on timestamp matching
-      script.scenes.forEach((scene) => {
+      script.scenes.forEach((scene, sceneIndex) => {
+        console.log(`Processing scene ${sceneIndex + 1}: timestamp="${scene.timestampString}"`);
+        
         // Find row with matching timestamp (column H - Giờ:phút:giây.mili)
+        let foundMatch = false;
         for (let i = 1; i < updatedData.length; i++) { // Skip header row
           const row = updatedData[i];
-          if (row && row[7] && row[7].toString().trim() === scene.timestampString) {
-            console.log(`Updating row ${i} with timestamp ${scene.timestampString}`);
-            
-            // Update the row according to user's sheet structure:
-            // STT(A) | Thời lượng(B) | Phân cảnh(C) | Text trên video(D) | Ghi chú(E) | VEO3 Prompt(F) | Ngày(G) | Giờ:phút:giây(H) | Timestamp ms(I) | Lời thoại(J)
-            updatedData[i] = [
-              row[0] || "", // STT - keep original
-              row[1] || "", // Thời lượng - keep original  
-              scene.description || row[2] || "", // Phân cảnh (C)
-              scene.content || row[3] || "", // Text trên video (D)
-              scene.notes || row[4] || "", // Ghi chú (E)
-              scene.action || row[5] || "", // VEO3 Prompt (F)
-              row[6] || "", // Ngày - keep original
-              scene.timestampString || row[7] || "", // Giờ:phút:giây (H) - keep original
-              row[8] || "", // Timestamp ms - keep original
-              scene.content || row[9] || "", // Lời thoại (J) - use content as fallback
-            ];
-            break;
+          if (row && row[7]) {
+            const rowTimestamp = row[7].toString().trim();
+            if (rowTimestamp === scene.timestampString) {
+              console.log(`✅ Found matching row ${i} for timestamp ${scene.timestampString}`);
+              console.log(`   Updating: description="${scene.description}", content="${scene.content}", notes="${scene.notes}"`);
+              
+              // Update the row according to user's sheet structure:
+              // STT(A) | Thời lượng(B) | Phân cảnh(C) | Text trên video(D) | Ghi chú(E) | VEO3 Prompt(F) | Ngày(G) | Giờ:phút:giây(H) | Timestamp ms(I) | Lời thoại(J)
+              updatedData[i] = [
+                row[0] || "", // STT - keep original
+                row[1] || "", // Thời lượng - keep original  
+                scene.description || row[2] || "", // Phân cảnh (C)
+                scene.content || row[3] || "", // Text trên video (D)
+                scene.notes || row[4] || "", // Ghi chú (E)
+                scene.action || row[5] || "", // VEO3 Prompt (F)
+                row[6] || "", // Ngày - keep original
+                row[7] || "", // Giờ:phút:giây (H) - keep original timestamp
+                row[8] || "", // Timestamp ms - keep original
+                scene.content || row[9] || "", // Lời thoại (J) - use content as fallback
+              ];
+              foundMatch = true;
+              updatedRowsCount++;
+              break;
+            }
           }
         }
+        
+        if (!foundMatch) {
+          console.log(`❌ No matching row found for timestamp: ${scene.timestampString}`);
+          console.log(`   Available timestamps in sheet:`, updatedData.slice(1).map(row => row[7]?.toString().trim()).filter(Boolean));
+        }
       });
+      
+      console.log(`Updated ${updatedRowsCount} rows out of ${script.scenes.length} scenes`);
 
       // Use the same range for updating as we used for reading
       console.log(`Updating sheet data with range: ${range}`);
