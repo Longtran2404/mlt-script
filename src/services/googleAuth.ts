@@ -380,6 +380,31 @@ class VLUScriptService {
     }
   }
 
+  // Test sheet connection
+  async testSheetConnection(sheetId: string): Promise<boolean> {
+    try {
+      if (!this.authService.isSignedIn()) {
+        throw new Error("User not signed in");
+      }
+
+      console.log("Testing connection to sheet:", sheetId);
+      
+      // Set authorization token
+      window.gapi.client.setToken({ access_token: this.authService.accessToken });
+      
+      // Try to get sheet metadata first (lighter request)
+      const response = await window.gapi.client.sheets.spreadsheets.get({
+        spreadsheetId: sheetId,
+      });
+
+      console.log("Sheet connection test successful:", response.result.properties?.title);
+      return true;
+    } catch (error: any) {
+      console.error("Sheet connection test failed:", error);
+      return false;
+    }
+  }
+
   // Get sheet data using gapi.client
   async getSheetData(sheetId: string, range: string = "A:Z"): Promise<any[][]> {
     try {
@@ -639,6 +664,13 @@ class VLUScriptService {
       }
 
       console.log("Found sheet ID:", sheetId);
+
+      // Test connection first
+      console.log("Testing sheet connection...");
+      const connectionTest = await this.testSheetConnection(sheetId);
+      if (!connectionTest) {
+        throw new Error("Không thể kết nối đến Google Sheet. Vui lòng kiểm tra:\n1. Sheet có được chia sẻ công khai?\n2. Sheet ID có đúng không?\n3. Tài khoản có quyền truy cập?");
+      }
 
       // Get sheet data
       console.log("Getting sheet data...");
