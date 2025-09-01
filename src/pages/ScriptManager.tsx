@@ -42,6 +42,9 @@ export default function ScriptManager() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [userInfo, setUserInfo] = useState<any>(null);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
+  const [autoSaveTimer, setAutoSaveTimer] = useState<NodeJS.Timeout | null>(null);
 
   const loadScripts = useCallback(async () => {
     if (!isConnected) return;
@@ -114,7 +117,14 @@ export default function ScriptManager() {
 
   useEffect(() => {
     checkGoogleConnection();
-  }, []);
+    
+    // Cleanup auto-save timer on unmount
+    return () => {
+      if (autoSaveTimer) {
+        clearTimeout(autoSaveTimer);
+      }
+    };
+  }, [autoSaveTimer]);
 
   useEffect(() => {
     if (isConnected) {
@@ -125,16 +135,33 @@ export default function ScriptManager() {
 
   const saveScript = async (script: Script) => {
     setSaving(true);
+    setSaveMessage(null);
+    
     try {
       const success = await vluScriptService.updateScript(script);
       if (success) {
         // Update local state
         setScripts(scripts.map((s) => (s.id === script.id ? script : s)));
         setSelectedScript(script);
+        setHasChanges(false);
+        
+        // Show success message
+        setSaveMessage({ type: 'success', text: '✅ Đã lưu thành công vào Google Sheets!' });
+        
+        // Clear message after 3 seconds
+        setTimeout(() => setSaveMessage(null), 3000);
+      } else {
+        setSaveMessage({ type: 'error', text: '❌ Không thể lưu. Vui lòng thử lại!' });
+        setTimeout(() => setSaveMessage(null), 5000);
       }
       return success;
     } catch (error) {
       console.error("Error saving script:", error);
+      setSaveMessage({ 
+        type: 'error', 
+        text: '❌ Lỗi khi lưu: ' + (error instanceof Error ? error.message : 'Unknown error') 
+      });
+      setTimeout(() => setSaveMessage(null), 5000);
       return false;
     } finally {
       setSaving(false);
@@ -157,6 +184,19 @@ export default function ScriptManager() {
     };
 
     setSelectedScript(updatedScript);
+    setHasChanges(true);
+    
+    // Clear existing auto-save timer
+    if (autoSaveTimer) {
+      clearTimeout(autoSaveTimer);
+    }
+    
+    // Set new auto-save timer (save after 2 seconds of no changes)
+    const newTimer = setTimeout(() => {
+      saveScript(updatedScript);
+    }, 2000);
+    
+    setAutoSaveTimer(newTimer);
   };
 
   const filteredScripts = scripts.filter((script) => {
@@ -392,7 +432,14 @@ export default function ScriptManager() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    onClick={() => setSelectedScript(script)}
+                    onClick={() => {
+                      setSelectedScript(script);
+                      setHasChanges(false);
+                      setSaveMessage(null);
+                      if (autoSaveTimer) {
+                        clearTimeout(autoSaveTimer);
+                      }
+                    }}
                     className={`p-4 rounded-xl border cursor-pointer transition-all duration-200 hover-lift ${
                       selectedScript?.id === script.id
                         ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
@@ -451,11 +498,33 @@ export default function ScriptManager() {
                     {selectedScript.title}
                   </CardTitle>
 
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-3">
+                    {/* Save Status */}
+                    {saveMessage && (
+                      <div className={`px-3 py-1 rounded-lg text-sm font-medium ${
+                        saveMessage.type === 'success' 
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                          : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                      }`}>
+                        {saveMessage.text}
+                      </div>
+                    )}
+                    
+                    {/* Changes indicator */}
+                    {hasChanges && !saving && !saveMessage && (
+                      <div className="px-3 py-1 rounded-lg bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 text-sm font-medium">
+                        💾 Tự động lưu sau 2 giây...
+                      </div>
+                    )}
+                    
                     <Button
                       onClick={() => saveScript(selectedScript)}
                       disabled={saving}
-                      className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+                      className={`${
+                        hasChanges 
+                          ? "bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700" 
+                          : "bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+                      }`}
                     >
                       {saving ? (
                         <div className="loading-dots">
@@ -466,7 +535,7 @@ export default function ScriptManager() {
                       ) : (
                         <>
                           <Save className="w-4 h-4 mr-2" />
-                          Lưu
+                          {hasChanges ? "Lưu ngay" : "Đã lưu"}
                         </>
                       )}
                     </Button>
