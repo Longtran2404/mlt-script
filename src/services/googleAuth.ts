@@ -657,12 +657,18 @@ class VLUScriptService {
     let scriptIndex = 1;
 
     groupedScenes.forEach((groupScenes, timestampKey) => {
+      // Reset scene numbering for each script
+      const reNumberedScenes = groupScenes.map((scene, index) => ({
+        ...scene,
+        sceneNumber: index + 1  // Start from 1 for each script
+      }));
+
       const script: Script = {
         id: `script_${scriptIndex}`,
         title: `Kịch bản ${timestampKey}`,
         description: `Kịch bản được tạo từ các cảnh có timestamp ${timestampKey}`,
         totalDuration: timestampKey,
-        scenes: groupScenes,
+        scenes: reNumberedScenes,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         status: "draft",
