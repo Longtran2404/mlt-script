@@ -183,7 +183,8 @@ class GoogleAuthService {
         sceneNumber: i
       };
 
-      const scriptKey = cells[2] || 'Default Script'; // Group by Phân cảnh
+      // Group by timestamp instead of Phân cảnh
+      const scriptKey = timestampStr || 'Default Script'; // Group by Giờ:phút:giây.mili
       if (!scriptMap.has(scriptKey)) {
         scriptMap.set(scriptKey, []);
       }
@@ -288,10 +289,97 @@ class GoogleAuthService {
     return this.loadVLUScripts();
   }
 
-  // Update script (not supported in CSV mode)
+  // Update script via Google Sheets API (if token available)
   async updateScript(script: Script): Promise<boolean> {
-    console.warn("⚠️ Update not supported with CSV method. Please edit Google Sheets directly.");
-    return false;
+    if (!this.accessToken) {
+      console.warn("⚠️ Update requires Google OAuth. Please connect your Google account first.");
+      return false;
+    }
+
+    try {
+      console.log("🔄 Updating script via Google Sheets API...");
+      
+      // Convert script back to rows for the sheet
+      const values = script.scenes.map(scene => [
+        scene.sceneNumber.toString(),
+        '5s', // Thời lượng ước tính
+        scene.description, // Phân cảnh
+        scene.content, // Lời thoại
+        '', // Text trên video
+        scene.notes, // Ghi chú
+        scene.action, // VEO3 Prompt
+        new Date().toISOString().split('T')[0], // Ngày
+        scene.timestampString, // Giờ:phút:giây.mili
+        scene.content // Dấu thời gian (ms)
+      ]);
+
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.SHEET_ID}/values/A2:J${values.length + 1}?valueInputOption=RAW`;
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${this.accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ values })
+      });
+
+      if (response.ok) {
+        console.log("✅ Script updated via Google Sheets API");
+        return true;
+      } else {
+        console.error("❌ API update failed:", response.status);
+        return false;
+      }
+    } catch (error) {
+      console.error("❌ Error updating script via API:", error);
+      return false;
+    }
+  }
+
+  // Add new script row via Google Sheets API
+  async addScriptRow(scene: ScriptScene): Promise<boolean> {
+    if (!this.accessToken) {
+      console.warn("⚠️ Add requires Google OAuth. Please connect your Google account first.");
+      return false;
+    }
+
+    try {
+      console.log("🔄 Adding new row via Google Sheets API...");
+      
+      const values = [[
+        scene.sceneNumber.toString(),
+        '5s', // Thời lượng ước tính
+        scene.description, // Phân cảnh
+        scene.content, // Lời thoại
+        '', // Text trên video
+        scene.notes || '', // Ghi chú
+        scene.action || '', // VEO3 Prompt
+        new Date().toISOString().split('T')[0], // Ngày
+        scene.timestampString, // Giờ:phút:giây.mili
+        scene.content // Dấu thời gian (ms)
+      ]];
+
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.SHEET_ID}/values/A:J:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ values })
+      });
+
+      if (response.ok) {
+        console.log("✅ Row added via Google Sheets API");
+        return true;
+      } else {
+        console.error("❌ API append failed:", response.status);
+        return false;
+      }
+    } catch (error) {
+      console.error("❌ Error adding row via API:", error);
+      return false;
+    }
   }
 
   // Export to CSV (just return current data)
