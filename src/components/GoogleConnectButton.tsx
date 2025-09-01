@@ -28,13 +28,11 @@ export default function GoogleConnectButton({
   const [error, setError] = useState<string | null>(null);
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
 
-  // Google OAuth2 configuration - Sử dụng Google Console Platform credentials
+  // Google OAuth2 configuration - Real credentials  
   const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || '499182576403-m7g4fukg2b380o7bm1257ikpbpf2dls3.apps.googleusercontent.com';
   
-  // Sử dụng redirect URI phù hợp với cấu hình Google Cloud Console
-  const REDIRECT_URI = process.env.NODE_ENV === 'development' 
-    ? 'http://localhost:3000/oauth2/callback'
-    : 'https://mlt-script.vercel.app/oauth2/callback';
+  // Sử dụng popup thay vì redirect cho dễ dàng hơn
+  const SCOPES = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.readonly';
 
   useEffect(() => {
     // Debug: Log configuration
@@ -73,13 +71,8 @@ export default function GoogleConnectButton({
   }, [GOOGLE_CLIENT_ID, REDIRECT_URI]);
 
   const handleConnect = async () => {
-    if (!isGoogleLoaded) {
-      setError("Google Identity Services chưa sẵn sàng");
-      return;
-    }
-
     if (!GOOGLE_CLIENT_ID) {
-      setError("Google Client ID chưa được cấu hình. Vui lòng kiểm tra REACT_APP_GOOGLE_CLIENT_ID");
+      setError("Google Client ID chưa được cấu hình");
       return;
     }
 
@@ -87,74 +80,89 @@ export default function GoogleConnectButton({
     setError(null);
 
     try {
-      console.log('🔄 Starting simple OAuth2 popup flow...');
+      console.log('🔄 Bắt đầu đăng nhập Google với popup...');
       
-      // Use simple popup OAuth flow
+      // Create popup-based OAuth flow
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` + new URLSearchParams({
         client_id: GOOGLE_CLIENT_ID,
         redirect_uri: window.location.origin + '/oauth2/callback.html',
         response_type: 'token',
-        scope: 'openid email profile https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/spreadsheets',
+        scope: SCOPES,
         include_granted_scopes: 'true',
         state: generateRandomState(),
+        prompt: 'consent' // Always show consent to get refresh permissions
       }).toString();
 
-      console.log('🌐 Opening OAuth popup...');
+      console.log('🌐 Mở popup đăng nhập Google...');
       
+      // Open popup window
       const popup = window.open(
         authUrl,
-        'google_oauth',
-        'width=500,height=600,scrollbars=yes,resizable=yes'
+        'google_oauth_popup',
+        'width=500,height=600,scrollbars=yes,resizable=yes,top=100,left=' + 
+        Math.round(window.screen.width / 2 - 250)
       );
 
       if (!popup) {
-        throw new Error('Popup bị chặn. Vui lòng cho phép popup và thử lại.');
+        throw new Error('Popup bị chặn bởi trình duyệt. Vui lòng cho phép popup và thử lại.');
       }
 
-      // Listen for popup messages
-      const messageListener = (event: MessageEvent) => {
+      // Listen for messages from popup
+      const handleMessage = (event: MessageEvent) => {
         if (event.origin !== window.location.origin) return;
         
+        console.log('📨 Received message from popup:', event.data);
+        
         if (event.data.type === 'GOOGLE_OAUTH_SUCCESS') {
-          console.log('✅ OAuth successful!', event.data);
+          console.log('✅ Đăng nhập Google thành công!');
           
-          // Save token info
-          localStorage.setItem('google_access_token', JSON.stringify({
+          // Save token with proper format
+          const tokenData = {
             access_token: event.data.access_token,
-            expiry: Date.now() + (parseInt(event.data.expires_in) * 1000)
-          }));
+            expiry: Date.now() + (parseInt(event.data.expires_in || '3600') * 1000),
+            scope: SCOPES
+          };
           
+          localStorage.setItem('google_access_token', JSON.stringify(tokenData));
           localStorage.setItem('google_user', JSON.stringify({
             name: 'Google User',
-            email: 'user@google.com'
+            email: 'Connected User',
+            connected_at: new Date().toISOString()
           }));
 
           setIsConnected(true);
           setIsConnecting(false);
           onConnect?.(true);
-          window.removeEventListener('message', messageListener);
+          
+          // Cleanup
+          window.removeEventListener('message', handleMessage);
           popup.close();
+          
+          alert('✅ Đã kết nối Google Sheets thành công! Bây giờ bạn có thể chỉnh sửa dữ liệu.');
+          
         } else if (event.data.type === 'GOOGLE_OAUTH_ERROR') {
-          console.error('❌ OAuth failed:', event.data.error);
-          setError('Đăng nhập Google thất bại: ' + event.data.error);
+          console.error('❌ Lỗi đăng nhập Google:', event.data.error);
+          setError('Đăng nhập thất bại: ' + event.data.error);
           setIsConnecting(false);
-          window.removeEventListener('message', messageListener);
+          window.removeEventListener('message', handleMessage);
+          popup.close();
         }
       };
 
-      window.addEventListener('message', messageListener);
+      window.addEventListener('message', handleMessage);
 
-      // Check if popup closed manually
+      // Check if popup was closed manually
       const checkClosed = setInterval(() => {
         if (popup.closed) {
           clearInterval(checkClosed);
+          console.log('❌ Popup đóng thủ công');
           setIsConnecting(false);
-          window.removeEventListener('message', messageListener);
+          window.removeEventListener('message', handleMessage);
         }
       }, 1000);
       
     } catch (err) {
-      console.error("❌ Google OAuth error:", err);
+      console.error("❌ Lỗi kết nối Google:", err);
       setError(
         err instanceof Error ? err.message : "Có lỗi xảy ra khi kết nối Google"
       );
