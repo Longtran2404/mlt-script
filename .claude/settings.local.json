@@ -54,7 +54,8 @@
       "Bash(wmic process where processid=6124 delete:*)",
       "Bash(git reset:*)",
       "Bash(gh repo view:*)",
-      "WebFetch(domain:mlt-script-jc52t1lwu-minh-long-trans-projects.vercel.app)"
+      "WebFetch(domain:mlt-script-jc52t1lwu-minh-long-trans-projects.vercel.app)",
+      "WebFetch(domain:mlt-script-rc3wx3mg4-minh-long-trans-projects.vercel.app)"
     ],
     "deny": [],
     "ask": []

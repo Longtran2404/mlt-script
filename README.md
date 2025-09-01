@@ -1,223 +1,254 @@
-# 🎬 MLT Script AI Platform
+# 🚀 VLU Script Management System - Modern Edition
 
-**Nền tảng AI All-in-One để tạo kịch bản và video chuyên nghiệp** - Single Page Application tích hợp đầy đủ chức năng.
+A comprehensive, modern web application for managing video scripts, projects, and content creation workflows at VLU (Van Lang University). Built with cutting-edge technologies and designed for international standards.
 
-🌐 **Live Demo**: [https://mlt-script.vercel.app](https://mlt-script.vercel.app) (Updated)
+## ✨ Features
 
-## ✨ Tính năng đầy đủ trong 1 trang
+### 🎯 Core Functionality
+- **Script Management**: Create, edit, and manage video scripts with AI assistance
+- **Video Creation**: Professional video recording and editing tools
+- **Project Management**: Comprehensive project tracking and team collaboration
+- **Analytics Dashboard**: Real-time insights and performance metrics
+- **Google Integration**: Seamless Google Sheets and Drive integration
 
-### 🎬 Tạo Video AI
-- Chuyển đổi kịch bản thành video chuyên nghiệp
-- Form nhập kịch bản với editor thông minh
-- Chọn phong cách: Modern, Classic, Minimal, Creative
-- Chọn nhạc nền: Upbeat, Calm, Dramatic, Corporate
-- Preview và export video chất lượng cao
+### 🎨 Modern UI/UX
+- **Glassmorphism Design**: Beautiful glass-like effects and modern aesthetics
+- **Responsive Layout**: Mobile-first design that works on all devices
+- **Dark/Light Mode**: Automatic theme switching with system preferences
+- **Smooth Animations**: Framer Motion powered interactions
+- **International Design**: Modern, professional appearance meeting global standards
 
-### 📝 Tạo Kịch Bản AI  
-- **6 dịch vụ học tập MLT**: Marketing Digital, Khởi Nghiệp, Lập Trình, Quản Lý, Sức Khỏe, Tài Chính
-- **Card flip animations** - hover để xem ví dụ kịch bản
-- **5 loại giọng điệu**: Nam/nữ trẻ, Nam/nữ trưởng thành, Trẻ em
-- **Slider thời lượng**: 30-60s với Veo 2 / Gemini Veo 3 selection
-- **Webhook integration**: Gửi dữ liệu tới n8n endpoint
-- **Session ID tracking**: Theo dõi từng request
+### 🔧 Technical Features
+- **TypeScript**: Full type safety and modern JavaScript features
+- **React 18**: Latest React features with hooks and modern patterns
+- **Tailwind CSS**: Utility-first CSS framework for rapid development
+- **ShadCN UI**: High-quality, accessible component library
+- **Framer Motion**: Smooth animations and micro-interactions
 
-### 📊 Script Manager - Google Sheets Integration
-- Kết nối trực tiếp với Google Sheets
-- Import/Export kịch bản tự động
-- Multi-sheet support cho nhiều project
-- Real-time sync và localStorage cache
-- Google OAuth2 authentication
+## 🛠️ Technology Stack
 
-### 🎯 Dashboard & Analytics
-- Thống kê real-time từ Google Sheets
-- Biểu đồ hiệu suất dự án
-- Quản lý tiến độ và deadline
-- Export báo cáo PDF/Excel
+### Frontend
+- **React 18** - Modern React with hooks and concurrent features
+- **TypeScript** - Type-safe JavaScript development
+- **Tailwind CSS** - Utility-first CSS framework
+- **ShadCN UI** - Professional component library
+- **Framer Motion** - Animation library for React
+- **Lucide React** - Beautiful, customizable icons
 
-### 🎨 Modern UI/UX tất cả trong 1
-- **Responsive design** hoàn hảo trên mọi thiết bị
-- **Dark/Light theme** toggle
-- **Navigation sidebar** với highlight active
-- **Framer Motion animations** mượt mà
-- **Loading states** và error handling
-- **Success/error notifications** thông minh
+### Backend & Services
+- **Google Sheets API** - Data storage and management
+- **Google Drive API** - File storage and sharing
+- **Google OAuth 2.0** - Secure authentication
+- **Vercel** - Modern deployment platform
 
-## 🛠️ Công nghệ sử dụng
+### Development Tools
+- **ESLint** - Code quality and consistency
+- **Prettier** - Code formatting
+- **React Router DOM** - Client-side routing
 
-- **Frontend**: React 18 + TypeScript
-- **Styling**: Tailwind CSS + ShadCN UI
-- **Animation**: Framer Motion
-- **Icons**: Lucide React
-- **Build Tool**: Create React App
-- **Deployment**: Vercel
-- **Authentication**: Google OAuth2
+## 🚀 Getting Started
 
-## 🎨 ShadCN UI Components
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+- Google Cloud Platform account
+- Vercel account (for deployment)
 
-Dự án đã được tích hợp đầy đủ với ShadCN UI, bao gồm:
+### Installation
 
-- ✅ **Button** - Nút với nhiều variants và sizes
-- ✅ **Card** - Card components với header, content, footer
-- ✅ **Input** - Input field với styling nhất quán
-- ✅ **Textarea** - Textarea với responsive design
-- ✅ **Select** - Dropdown select với options
-- ✅ **Badge** - Badge với nhiều variants
-- ✅ **Utils** - Helper functions (cn, clsx, tailwind-merge)
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd vercel-n8n-frontend
+   ```
 
-## 📁 Kiến trúc Single Page App
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-```
-src/
-├── components/          # All-in-One UI Components
-│   ├── ui/             # ShadCN UI components (Button, Card, Input...)
-│   ├── layout/         # MainLayout, Header, Sidebar
-│   ├── ServiceCardDemo.tsx    # Demo cards
-│   ├── ChatBot.tsx            # AI Chatbot widget
-│   └── StarField.tsx          # Background effects
-├── pages/              # Main Application Features
-│   ├── NewHome.tsx            # Landing page với hero section
-│   ├── TaoVideo.tsx           # Video AI creation tool
-│   ├── TaoKichBan.tsx         # Script AI generation
-│   ├── ScriptManager.tsx      # Google Sheets integration
-│   ├── EnhancedDashboard.tsx  # Analytics & stats
-│   └── OAuth2Callback.tsx     # Google auth handler
-├── services/           # Backend Integration
-│   ├── googleAuth.ts          # Google OAuth2 + Sheets API
-│   ├── googleSheets.ts        # Sheet operations
-│   └── googleOAuth.ts         # Authentication flow  
-├── contexts/           # Global State
-│   └── ThemeContext.tsx       # Dark/Light theme
-├── types/              # TypeScript Definitions
-│   ├── script.types.ts        # Script & scene interfaces
-│   └── sheets.types.ts        # Google Sheets types
-└── lib/                # Utilities
-    └── utils.ts               # Helper functions
-```
+3. **Environment Setup**
+   ```bash
+   cp .env.example .env.local
+   ```
+   
+   Configure your `.env.local`:
+   ```env
+   REACT_APP_GOOGLE_CLIENT_ID=your_google_client_id
+   REACT_APP_VLU_SCRIPT_SHEET_ID=your_sheet_id
+   REACT_APP_GOOGLE_API_KEY=your_api_key
+   ```
 
-## 🚀 Cài đặt và chạy
+4. **Start development server**
+   ```bash
+   npm start
+   ```
 
-### Yêu cầu hệ thống
-- Node.js 16+
-- npm hoặc yarn
+## 📱 Available Pages
 
-### Cài đặt dependencies
-```bash
-npm install
-```
+### 🏠 Home & Landing
+- **`/`** - Modern landing page with features showcase
+- **`/home`** - Alternative home route
 
-### Chạy development server
-```bash
-npm start
-```
+### 📊 Dashboard & Analytics
+- **`/dashboard`** - Enhanced dashboard with project overview
+- **`/analytics`** - Comprehensive analytics and insights
+- **`/modern-dashboard`** - Experimental modern dashboard
 
-### Build production
-```bash
-npm run build
-```
+### ✍️ Content Creation
+- **`/script-creator`** - AI-powered script creation tool
+- **`/tao-video`** - Professional video recording interface
 
-### Kiểm tra lint
-```bash
-npm run lint
-```
+### 📋 Management & Organization
+- **`/script-manager`** - Script management and editing
+- **`/quan-ly`** - General management interface
+- **`/quan-ly-du-an`** - Project management system
 
-## 🔐 Google OAuth2 Setup
+### ⚙️ System & Support
+- **`/settings`** - Application settings and preferences
+- **`/help`** - Help and documentation
+- **`/oauth2callback`** - Google OAuth callback handler
 
-### 1. Tạo Google Cloud Project
-- Truy cập [Google Cloud Console](https://console.cloud.google.com/)
-- Enable Google Drive API và Google Sheets API
-- Tạo OAuth2 credentials
+## 🔐 Google Integration Setup
 
-### 2. Cấu hình Environment Variables
-Tạo file `.env`:
-```bash
-REACT_APP_GOOGLE_CLIENT_ID=your_client_id_here
-REACT_APP_GOOGLE_CLIENT_SECRET=your_client_secret_here
-REACT_APP_OAUTH2_REDIRECT_URI=http://localhost:3000/oauth2/callback
+### 1. Google Cloud Platform
+- Create a new project
+- Enable Google Sheets API and Google Drive API
+- Create OAuth 2.0 credentials
+- Configure authorized redirect URIs
+
+### 2. Google Sheets
+- Create a new spreadsheet
+- Share with your service account
+- Note the spreadsheet ID for environment variables
+
+### 3. Environment Variables
+```env
+REACT_APP_GOOGLE_CLIENT_ID=your_client_id
+REACT_APP_VLU_SCRIPT_SHEET_ID=your_spreadsheet_id
+REACT_APP_GOOGLE_API_KEY=your_api_key
 ```
 
-### 3. Cấu hình Google Cloud Console
-- **Authorized JavaScript origins**: `http://localhost:3000`
-- **Authorized redirect URIs**: `http://localhost:3000/oauth2/callback`
-
-## 🌐 Deployment
+## 🚀 Deployment
 
 ### Vercel Deployment
-Dự án đã được cấu hình sẵn để deploy lên Vercel:
+1. **Connect to Vercel**
+   ```bash
+   npm install -g vercel
+   vercel login
+   ```
 
-1. **Connect GitHub repository** với Vercel
-2. **Import project** từ GitHub
-3. **Set environment variables** trong Vercel dashboard
-4. **Deploy** tự động
+2. **Deploy**
+   ```bash
+   vercel --prod
+   ```
 
-### Environment Variables (Production)
+3. **Environment Variables**
+   - Add all environment variables in Vercel dashboard
+   - Ensure Google OAuth redirect URIs are updated
+
+### Manual Deployment
+1. **Build the project**
+   ```bash
+   npm run build
+   ```
+
+2. **Deploy build folder**
+   - Upload to your hosting provider
+   - Configure environment variables
+   - Update Google OAuth redirect URIs
+
+## 🎨 Design System
+
+### Color Palette
+- **Primary**: Blue gradients (#3B82F6 to #8B5CF6)
+- **Secondary**: Green gradients (#10B981 to #059669)
+- **Accent**: Purple gradients (#8B5CF6 to #EC4899)
+- **Neutral**: Gray scale (#F8FAFC to #1E293B)
+
+### Typography
+- **Headings**: Inter font family
+- **Body**: System font stack
+- **Monospace**: JetBrains Mono for code
+
+### Components
+- **Cards**: Glassmorphism with backdrop blur
+- **Buttons**: Gradient backgrounds with hover effects
+- **Forms**: Modern input styles with focus states
+- **Navigation**: Sticky headers with smooth transitions
+
+## 🔧 Development
+
+### Available Scripts
 ```bash
-REACT_APP_GOOGLE_CLIENT_ID=your_production_client_id
-REACT_APP_OAUTH2_REDIRECT_URI=https://your-domain.vercel.app/oauth2/callback
+npm start          # Start development server
+npm run build      # Build for production
+npm run test       # Run tests
+npm run eject      # Eject from Create React App
 ```
 
-## 📱 Responsive Design
+### Code Style
+- **ESLint**: Enforces code quality rules
+- **Prettier**: Automatic code formatting
+- **TypeScript**: Strict type checking enabled
+- **Component Structure**: Functional components with hooks
 
-- **Mobile**: Tối ưu cho màn hình nhỏ
-- **Tablet**: Layout thích ứng cho tablet
-- **Desktop**: Giao diện đầy đủ cho desktop
-- **Navigation**: Mobile menu với hamburger
+### File Organization
+```
+src/
+├── components/     # Reusable UI components
+├── pages/         # Page components
+├── services/      # API and external services
+├── utils/         # Utility functions
+├── types/         # TypeScript type definitions
+└── styles/        # Global styles and CSS
+```
 
-## 🎯 Chức năng All-in-One
+## 🌟 Key Improvements in Modern Edition
 
-**Tất cả trong 1 trang duy nhất** - không cần chuyển trang, mọi thứ được tích hợp mượt mà:
+### 1. **Enhanced User Experience**
+- Smooth animations and micro-interactions
+- Responsive design for all devices
+- Modern glassmorphism aesthetics
+- Improved navigation and layout
 
-✅ **Landing Page** - Hero section với CTA buttons  
-✅ **Video AI Creation** - Form tạo video với preview  
-✅ **Script AI Generation** - 6 service cards với flip animations  
-✅ **Google Sheets Manager** - Import/export kịch bản real-time  
-✅ **Dashboard Analytics** - Charts và statistics  
-✅ **Settings Panel** - Theme toggle, user preferences  
-✅ **OAuth Integration** - Seamless Google login flow  
+### 2. **Performance Optimization**
+- Lazy loading for better performance
+- Optimized bundle size
+- Efficient state management
+- Modern React patterns
 
-**🎨 Single Page Experience:**
-- Sidebar navigation với smooth transitions
-- Modal dialogs thay vì page redirects  
-- Loading states cho mọi action
-- Real-time updates không cần refresh
+### 3. **International Standards**
+- Professional design language
+- Accessibility improvements
+- Modern web standards compliance
+- Cross-browser compatibility
 
-## 🤝 Đóng góp
+### 4. **Developer Experience**
+- TypeScript for better development
+- Modern component architecture
+- Comprehensive error handling
+- Better code organization
 
-1. Fork dự án
-2. Tạo feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Mở Pull Request
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
 
 ## 📄 License
 
-Dự án này được phát hành dưới MIT License.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 📞 Liên hệ
+## 🆘 Support
 
-- **Email**: support@mlt.edu.vn
-- **Website**: https://mlt.edu.vn
-- **GitHub**: [MLT Script AI Platform](https://github.com/Longtran2404/mlt-script)
-
-## 🚀 Live Demo
-
-**🌟 Production URL**: [https://mlt-script.vercel.app](https://mlt-script.vercel.app) ✅ **DEPLOYED**
-
-### 📊 Deployment Status
-- ✅ **GitHub Repository**: https://github.com/Longtran2404/mlt-script
-- ✅ **Vercel Production**: https://mlt-script.vercel.app
-- ✅ **Vercel Dashboard**: https://vercel.com/minh-long-trans-projects/mlt-script
-- ✅ **Auto Deploy**: Enabled (push to main branch)
-
-**🎯 Direct Features:**
-- 🏠 **Main App**: https://mlt-script.vercel.app/ 
-- 🎬 **Video Creation**: Click "Tạo Video AI" button
-- 📝 **Script Generation**: Click "Tạo Kịch Bản AI" button  
-- 📊 **Script Manager**: Click "Quản Lý Kịch Bản" in sidebar
-- 📈 **Dashboard**: Click "Dashboard" in navigation
-
-> **Note**: Tất cả tính năng trong cùng 1 URL - Single Page Application!
+For support and questions:
+- Create an issue in the repository
+- Contact the development team
+- Check the documentation in `/help` page
 
 ---
 
-⭐ **Star dự án này nếu bạn thấy hữu ích!**
-# Force rebuild to load env vars
+**Built with ❤️ for VLU by the Development Team**

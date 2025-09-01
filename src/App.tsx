@@ -1,159 +1,43 @@
-import React from "react";
+import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { ThemeProvider } from "./contexts/ThemeContext";
-import MainLayout from "./components/layout/MainLayout";
 import NewHome from "./pages/NewHome";
-import ServiceCardDemo from "./components/ServiceCardDemo";
-import "./App.css";
-
-// Import các trang chính
-import EnhancedDashboard from "./pages/EnhancedDashboard";
 import ScriptManager from "./pages/ScriptManager";
-import TaoVideo from "./pages/TaoVideo";
-// TaoKichBan đã được thay thế bằng ScriptCreator
-import ScriptCreator from "./pages/ScriptCreator";
-import NewScriptCreatorInfo from "./components/NewScriptCreatorInfo";
-import ProjectManagement from "./pages/ProjectManagement";
-import Analytics from "./pages/Analytics";
+import ScriptCreatorNew from "./pages/ScriptCreatorNew";
+import TaoVideoNew from "./pages/TaoVideoNew";
+import EnhancedDashboardNew from "./pages/EnhancedDashboardNew";
+import ProjectManagementNew from "./pages/ProjectManagementNew";
+import AnalyticsNew from "./pages/AnalyticsNew";
+import QuanLyNew from "./pages/QuanLyNew";
+import ModernNavbar from "./components/ModernNavbar";
+import ModernSidebar from "./components/ModernSidebar";
+import ModernDashboard from "./components/ModernDashboard";
+import OAuth2Callback from "./pages/OAuth2Callback";
 import Settings from "./pages/Settings";
 import Help from "./pages/Help";
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   return (
-    <ThemeProvider>
-      <Router>
-        <div className="App">
-          <Routes>
-            {/* Trang chủ với MainLayout nhưng không có sidebar */}
-            <Route
-              path="/"
-              element={
-                <MainLayout showSidebar={false}>
-                  <NewHome />
-                </MainLayout>
-              }
-            />
-
-            {/* Các trang có sidebar */}
-            <Route
-              path="/dashboard"
-              element={
-                <MainLayout showSidebar={true}>
-                  <div className="container mx-auto px-4 py-8">
-                    <EnhancedDashboard />
-                  </div>
-                </MainLayout>
-              }
-            />
-
-            <Route
-              path="/tao-video"
-              element={
-                <MainLayout showSidebar={true}>
-                  <div className="container mx-auto px-4 py-8">
-                    <TaoVideo />
-                  </div>
-                </MainLayout>
-              }
-            />
-
-            <Route
-              path="/tao-kich-ban"
-              element={
-                <MainLayout showSidebar={true}>
-                  <ScriptCreator />
-                </MainLayout>
-              }
-            />
-
-            <Route
-              path="/tao-kich-ban-new"
-              element={
-                <MainLayout showSidebar={true}>
-                  <ScriptCreator />
-                </MainLayout>
-              }
-            />
-
-            <Route
-              path="/script-creator-info"
-              element={
-                <MainLayout showSidebar={true}>
-                  <NewScriptCreatorInfo />
-                </MainLayout>
-              }
-            />
-
-            <Route
-              path="/quan-ly-kich-ban"
-              element={
-                <MainLayout showSidebar={true}>
-                  <div className="container mx-auto px-4 py-8">
-                    <ScriptManager />
-                  </div>
-                </MainLayout>
-              }
-            />
-
-            <Route
-              path="/quan-ly-du-an"
-              element={
-                <MainLayout showSidebar={true}>
-                  <div className="container mx-auto px-4 py-8">
-                    <ProjectManagement />
-                  </div>
-                </MainLayout>
-              }
-            />
-
-            <Route
-              path="/analytics"
-              element={
-                <MainLayout showSidebar={true}>
-                  <div className="container mx-auto px-4 py-8">
-                    <Analytics />
-                  </div>
-                </MainLayout>
-              }
-            />
-
-            <Route
-              path="/cai-dat"
-              element={
-                <MainLayout showSidebar={true}>
-                  <div className="container mx-auto px-4 py-8">
-                    <Settings />
-                  </div>
-                </MainLayout>
-              }
-            />
-
-            <Route
-              path="/tro-giup"
-              element={
-                <MainLayout showSidebar={true}>
-                  <div className="container mx-auto px-4 py-8">
-                    <Help />
-                  </div>
-                </MainLayout>
-              }
-            />
-
-            {/* Special routes */}
-            <Route
-              path="/service-demo"
-              element={
-                <MainLayout showSidebar={true}>
-                  <div className="container mx-auto px-4 py-8">
-                    <ServiceCardDemo />
-                  </div>
-                </MainLayout>
-              }
-            />
-          </Routes>
-        </div>
-      </Router>
-    </ThemeProvider>
+    <Router>
+      <div className="App">
+        <Routes>
+          <Route path="/" element={<NewHome />} />
+          <Route path="/home" element={<NewHome />} />
+          <Route path="/dashboard" element={<EnhancedDashboardNew />} />
+          <Route path="/script-manager" element={<ScriptManager />} />
+          <Route path="/script-creator" element={<ScriptCreatorNew />} />
+          <Route path="/tao-video" element={<TaoVideoNew />} />
+          <Route path="/quan-ly" element={<QuanLyNew />} />
+          <Route path="/quan-ly-du-an" element={<ProjectManagementNew />} />
+          <Route path="/analytics" element={<AnalyticsNew />} />
+          <Route path="/modern-dashboard" element={<ModernDashboard />} />
+          <Route path="/oauth2callback" element={<OAuth2Callback />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/help" element={<Help />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 

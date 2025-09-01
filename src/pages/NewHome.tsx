@@ -1,5 +1,5 @@
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Video,
@@ -14,6 +14,97 @@ import {
   Award,
   TrendingUp,
   Shield,
+  Globe,
+  Sparkles,
+  Rocket,
+  Target,
+  Clock,
+  Eye,
+  Heart,
+  MessageCircle,
+  Download,
+  Share2,
+  Settings,
+  Bell,
+  Search,
+  Menu,
+  X,
+  ChevronRight,
+  ChevronLeft,
+  ExternalLink,
+  Github,
+  Twitter,
+  Linkedin,
+  Youtube,
+  Instagram,
+  Facebook,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  User,
+  Lock,
+  Key,
+  Database,
+  Cloud,
+  Server,
+  Cpu,
+  Wifi,
+  Battery,
+  Volume2,
+  VolumeX,
+  Maximize2,
+  Minimize2,
+  RotateCcw,
+  RefreshCw,
+  Save,
+  Edit,
+  Trash,
+  Copy,
+  Cut,
+  Paste,
+  Undo,
+  Redo,
+  Bold,
+  Italic,
+  Underline,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  List,
+  Grid,
+  Image,
+  Link as LinkIcon,
+  Code,
+  Quote,
+  Hash,
+  AtSign,
+  DollarSign,
+  Percent,
+  Plus,
+  Minus,
+  Divide,
+  Equal,
+  Infinity,
+  Pi,
+  Sigma,
+  Omega,
+  Alpha,
+  Beta,
+  Gamma,
+  Delta,
+  Theta,
+  Lambda,
+  Mu,
+  Nu,
+  Xi,
+  Omicron,
+  Rho,
+  Tau,
+  Upsilon,
+  Phi,
+  Chi,
+  Psi,
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
@@ -22,388 +113,806 @@ import { FeatureCard, Feature } from "../components/ui/feature-card";
 
 export default function NewHome() {
   const navigate = useNavigate();
-  
-  // Hero Stats
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [activeFeature, setActiveFeature] = useState(0);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Auto-scroll testimonials
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % testimonials.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Loading effect
+  useEffect(() => {
+    setTimeout(() => setIsLoading(false), 1000);
+  }, []);
+
+  // Auto-rotate features
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveFeature((prev) => (prev + 1) % features.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Hero Stats with enhanced data
   const heroStats = [
-    { label: "Dự án hoàn thành", value: "10,000+", change: "+25%" },
-    { label: "Người dùng", value: "50,000+", change: "+40%" },
-    { label: "Video tạo/tháng", value: "100,000+", change: "+60%" },
-    { label: "Độ hài lòng", value: "99.8%", change: "+5%" },
+    {
+      label: "Projects Completed",
+      value: "10,000+",
+      change: "+25%",
+      icon: <Target className="w-5 h-5" />,
+      color: "text-blue-600",
+    },
+    {
+      label: "Active Users",
+      value: "50,000+",
+      change: "+40%",
+      icon: <Users className="w-5 h-5" />,
+      color: "text-green-600",
+    },
+    {
+      label: "Videos Created",
+      value: "100,000+",
+      change: "+60%",
+      icon: <Video className="w-5 h-5" />,
+      color: "text-purple-600",
+    },
+    {
+      label: "Satisfaction Rate",
+      value: "99.8%",
+      change: "+5%",
+      icon: <Heart className="w-5 h-5" />,
+      color: "text-red-600",
+    },
   ];
 
-  // Features
+  // Enhanced Features
   const features: Feature[] = [
     {
       id: "ai-video",
       title: "AI Video Generator",
-      description: "Tạo video chuyên nghiệp từ kịch bản với công nghệ AI tiên tiến. Hỗ trợ nhiều ngôn ngữ và phong cách.",
-      icon: <Video className="w-7 h-7" />,
+      description:
+        "Create professional videos from scripts with advanced AI technology. Support multiple languages and styles.",
+      icon: <Video className="w-8 h-8" />,
       color: "blue",
       badge: "Hot",
       stats: [
-        { label: "Thời gian", value: "<5 phút" },
-        { label: "Chất lượng", value: "4K" },
+        { label: "Generation Time", value: "<5 min" },
+        { label: "Quality", value: "4K" },
+        { label: "Languages", value: "50+" },
+      ],
+      demo: "https://example.com/video-demo",
+      features: [
+        "Auto-sync",
+        "Voice cloning",
+        "Background removal",
+        "Motion tracking",
       ],
     },
     {
       id: "script-ai",
       title: "Script AI Assistant",
-      description: "Trợ lý AI thông minh giúp tạo kịch bản sáng tạo, phù hợp với mọi mục đích và đối tượng.",
-      icon: <FileText className="w-7 h-7" />,
+      description:
+        "Intelligent AI assistant helps create creative scripts suitable for any purpose and audience.",
+      icon: <FileText className="w-8 h-8" />,
       color: "purple",
       badge: "New",
       stats: [
         { label: "Languages", value: "20+" },
         { label: "Templates", value: "100+" },
+        { label: "Genres", value: "15+" },
+      ],
+      demo: "https://example.com/script-demo",
+      features: [
+        "Smart suggestions",
+        "Grammar check",
+        "Tone adjustment",
+        "SEO optimization",
       ],
     },
     {
       id: "analytics",
       title: "Advanced Analytics",
-      description: "Phân tích chi tiết hiệu suất nội dung với dashboard trực quan và báo cáo tự động.",
-      icon: <BarChart3 className="w-7 h-7" />,
+      description:
+        "Detailed content performance analysis with visual dashboard and automatic reporting.",
+      icon: <BarChart3 className="w-8 h-8" />,
       color: "green",
       stats: [
         { label: "Metrics", value: "50+" },
         { label: "Real-time", value: "100%" },
+        { label: "Reports", value: "Auto" },
+      ],
+      demo: "https://example.com/analytics-demo",
+      features: [
+        "Real-time tracking",
+        "Custom dashboards",
+        "Export reports",
+        "Predictive insights",
       ],
     },
     {
       id: "collaboration",
       title: "Team Collaboration",
-      description: "Làm việc nhóm hiệu quả với hệ thống quản lý dự án và phân quyền chi tiết.",
-      icon: <Users className="w-7 h-7" />,
+      description:
+        "Efficient teamwork with project management system and detailed permissions.",
+      icon: <Users className="w-8 h-8" />,
       color: "orange",
       stats: [
         { label: "Users/Team", value: "50+" },
         { label: "Projects", value: "∞" },
+        { label: "Storage", value: "1TB" },
+      ],
+      demo: "https://example.com/collab-demo",
+      features: [
+        "Role management",
+        "Version control",
+        "Comments",
+        "Approval workflow",
       ],
     },
   ];
 
-  // Pricing Plans
+  // Enhanced Pricing Plans
   const pricingPlans: PricingPlan[] = [
     {
       id: "starter",
       name: "Starter",
-      description: "Hoàn hảo cho cá nhân và freelancer",
+      description: "Perfect for individuals and freelancers",
       price: 0,
-      period: "tháng",
+      period: "month",
       features: [
-        "5 video AI/tháng",
-        "10 kịch bản/tháng",
-        "Templates cơ bản",
-        "Export 720p",
-        "Hỗ trợ email",
+        "5 AI videos/month",
+        "10 scripts/month",
+        "Basic templates",
+        "720p export",
+        "Email support",
+        "1 user",
+        "5GB storage",
       ],
-      buttonText: "Bắt đầu miễn phí",
+      buttonText: "Start Free",
       buttonVariant: "outline",
+      popular: false,
+      savings: null,
+      badge: "Free Forever",
+      limits: {
+        videos: "5/month",
+        scripts: "10/month",
+        storage: "5GB",
+        users: "1",
+      },
     },
     {
-      id: "professional",
+      id: "pro",
       name: "Professional",
-      description: "Tối ưu cho doanh nghiệp nhỏ",
-      price: 299000,
-      originalPrice: 399000,
-      period: "tháng",
+      description: "Ideal for content creators and small teams",
+      price: 29,
+      period: "month",
       features: [
-        "50 video AI/tháng",
-        "Unlimited kịch bản",
+        "50 AI videos/month",
+        "100 scripts/month",
         "Premium templates",
-        "Export 4K",
-        "Advanced analytics",
+        "4K export",
         "Priority support",
-        "Team collaboration (5 users)",
+        "5 team members",
+        "100GB storage",
+        "Advanced analytics",
+        "Custom branding",
+        "API access",
       ],
-      highlighted: true,
+      buttonText: "Start Pro",
+      buttonVariant: "default",
       popular: true,
-      icon: <Zap className="w-8 h-8" />,
-      buttonText: "Nâng cấp ngay",
+      savings: "Save 20%",
+      badge: "Most Popular",
+      limits: {
+        videos: "50/month",
+        scripts: "100/month",
+        storage: "100GB",
+        users: "5",
+      },
     },
     {
       id: "enterprise",
       name: "Enterprise",
-      description: "Giải pháp toàn diện cho doanh nghiệp",
-      price: 999000,
-      originalPrice: 1299000,
-      period: "tháng",
+      description: "For large organizations and agencies",
+      price: 99,
+      period: "month",
       features: [
-        "Unlimited video AI",
-        "Unlimited kịch bản",
-        "Custom templates",
-        "White-label solution",
-        "Advanced integrations",
-        "Dedicated support",
+        "Unlimited AI videos",
+        "Unlimited scripts",
+        "All templates",
+        "8K export",
+        "24/7 support",
         "Unlimited team members",
-        "Custom analytics",
+        "1TB storage",
+        "Advanced analytics",
+        "Custom branding",
+        "API access",
+        "White-label solution",
+        "Dedicated account manager",
+        "Custom integrations",
         "SLA guarantee",
       ],
-      buttonText: "Liên hệ tư vấn",
+      buttonText: "Contact Sales",
       buttonVariant: "outline",
+      popular: false,
+      savings: "Save 30%",
+      badge: "Enterprise",
+      limits: {
+        videos: "Unlimited",
+        scripts: "Unlimited",
+        storage: "1TB",
+        users: "Unlimited",
+      },
     },
   ];
 
   // Testimonials
   const testimonials = [
     {
-      name: "Nguyễn Minh Tuấn",
-      role: "CEO, TechStart Vietnam",
-      avatar: "👨‍💼",
-      content: "MLT Script AI đã thay đổi hoàn toàn cách chúng tôi tạo nội dung marketing. Tiết kiệm 80% thời gian và chi phí!",
+      id: 1,
+      name: "Sarah Johnson",
+      role: "Content Creator",
+      company: "TechFlow Media",
+      avatar:
+        "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
+      content:
+        "MLT Script AI has revolutionized our content creation process. We've increased our video output by 300% while maintaining quality.",
       rating: 5,
-      company: "TechStart",
+      video: "https://example.com/testimonial1.mp4",
+      stats: { views: "2.5M", engagement: "15%", growth: "+200%" },
     },
     {
-      name: "Trần Thị Mai",
-      role: "Content Manager",
-      avatar: "👩‍💻",
-      content: "Công nghệ AI tuyệt vời, giao diện thân thiện. Team tôi đã tạo được hơn 200 video chỉ trong tháng đầu.",
-      rating: 5,
-      company: "Digital Agency",
-    },
-    {
-      name: "Lê Văn Đức",
+      id: 2,
+      name: "Michael Chen",
       role: "Marketing Director",
-      avatar: "👨‍🎨",
-      content: "ROI tăng 300% sau khi sử dụng MLT Script AI. Đầu tư xứng đáng nhất năm!",
+      company: "Global Solutions Inc.",
+      avatar:
+        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+      content:
+        "The AI script generation is incredibly accurate and saves us hours of work. Our marketing campaigns are now more effective than ever.",
       rating: 5,
-      company: "E-commerce Plus",
+      video: "https://example.com/testimonial2.mp4",
+      stats: { views: "1.8M", engagement: "12%", growth: "+150%" },
+    },
+    {
+      id: 3,
+      name: "Emma Rodriguez",
+      role: "Creative Director",
+      company: "Digital Dreams Studio",
+      avatar:
+        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+      content:
+        "The collaboration features are game-changing. Our team can work seamlessly across different time zones and projects.",
+      rating: 5,
+      video: "https://example.com/testimonial3.mp4",
+      stats: { views: "3.2M", engagement: "18%", growth: "+250%" },
     },
   ];
 
-  return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden py-20 lg:py-32">
-        <div className="container mx-auto px-4">
-          <div className="max-w-5xl mx-auto text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-            >
-              <Badge variant="secondary" className="mb-6 px-6 py-2 text-sm bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 dark:text-blue-200">
-                🚀 Platform AI #1 Việt Nam - Trusted by 50,000+ users
-              </Badge>
-              
-              <h1 className="text-5xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-8 leading-tight">
-                Tạo Video & Kịch Bản
-                <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">
-                  Chuyên Nghiệp với AI
-                </span>
-              </h1>
-              
-              <p className="text-xl lg:text-2xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto mb-10 leading-relaxed">
-                Chuyển đổi ý tưởng thành nội dung viral với công nghệ AI tiên tiến nhất. 
-                Tiết kiệm <span className="font-bold text-blue-600">90% thời gian</span>, 
-                tăng <span className="font-bold text-green-600">300% hiệu quả</span>.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
-                <Link to="/tao-video">
-                  <Button 
-                    size="lg" 
-                    className="text-lg px-10 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105"
-                  >
-                    <Play className="w-6 h-6 mr-3" />
-                    Tạo Video AI Miễn Phí
-                  </Button>
-                </Link>
-                <Link to="/dashboard">
-                  <Button 
-                    variant="outline" 
-                    size="lg" 
-                    className="text-lg px-10 py-4 border-2 border-gray-300 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-400 transition-all duration-300"
-                  >
-                    <ArrowRight className="w-6 h-6 mr-3" />
-                    Xem Demo Live
-                  </Button>
-                </Link>
-              </div>
+  // Partners/Logos
+  const partners = [
+    { name: "Google", logo: "https://example.com/google.svg" },
+    { name: "Microsoft", logo: "https://example.com/microsoft.svg" },
+    { name: "Adobe", logo: "https://example.com/adobe.svg" },
+    { name: "Netflix", logo: "https://example.com/netflix.svg" },
+    { name: "Disney", logo: "https://example.com/disney.svg" },
+    { name: "Spotify", logo: "https://example.com/spotify.svg" },
+  ];
 
-              {/* Hero Stats */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.3 }}
-                className="grid grid-cols-2 lg:grid-cols-4 gap-8 max-w-4xl mx-auto"
-              >
-                {heroStats.map((stat, index) => (
-                  <motion.div 
-                    key={index} 
-                    className="text-center p-6 rounded-2xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-gray-200/20 dark:border-gray-700/20 hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all duration-300"
-                    whileHover={{ y: -4, scale: 1.02 }}
-                  >
-                    <div className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                      {stat.value}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                      {stat.label}
-                    </div>
-                    <div className="text-xs text-green-600 dark:text-green-400 font-medium flex items-center justify-center">
-                      <TrendingUp className="w-3 h-3 mr-1" />
-                      {stat.change}
-                    </div>
-                  </motion.div>
-                ))}
-              </motion.div>
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.6,
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5,
+      },
+    },
+  };
+
+  const heroVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.8,
+        ease: "easeOut",
+      },
+    },
+  };
+
+  const statsVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.5,
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="text-center"
+        >
+          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300">
+            Loading MLT Script AI...
+          </h2>
+        </motion.div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      {/* Modern Navigation */}
+      <motion.nav
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          isScrolled
+            ? "bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-lg"
+            : "bg-transparent"
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo */}
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="flex items-center space-x-2"
+            >
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                MLT Script AI
+              </span>
             </motion.div>
+
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-8">
+              <a
+                href="#features"
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              >
+                Features
+              </a>
+              <a
+                href="#pricing"
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              >
+                Pricing
+              </a>
+              <a
+                href="#testimonials"
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              >
+                Testimonials
+              </a>
+              <a
+                href="#contact"
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              >
+                Contact
+              </a>
+            </div>
+
+            {/* CTA Buttons */}
+            <div className="hidden md:flex items-center space-x-4">
+              <Button variant="ghost" onClick={() => navigate("/dashboard")}>
+                Sign In
+              </Button>
+              <Button onClick={() => navigate("/dashboard")}>
+                Get Started
+              </Button>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="md:hidden p-2 rounded-md text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+            >
+              {isMenuOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
+            </button>
           </div>
         </div>
 
-        {/* Background Elements */}
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-200/30 dark:bg-blue-800/20 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-200/30 dark:bg-purple-800/20 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute top-3/4 left-1/2 w-64 h-64 bg-pink-200/30 dark:bg-pink-800/20 rounded-full blur-3xl animate-pulse" />
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700"
+            >
+              <div className="px-4 py-6 space-y-4">
+                <a
+                  href="#features"
+                  className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                >
+                  Features
+                </a>
+                <a
+                  href="#pricing"
+                  className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                >
+                  Pricing
+                </a>
+                <a
+                  href="#testimonials"
+                  className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                >
+                  Testimonials
+                </a>
+                <a
+                  href="#contact"
+                  className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                >
+                  Contact
+                </a>
+                <div className="pt-4 space-y-2">
+                  <Button
+                    variant="ghost"
+                    className="w-full"
+                    onClick={() => navigate("/dashboard")}
+                  >
+                    Sign In
+                  </Button>
+                  <Button
+                    className="w-full"
+                    onClick={() => navigate("/dashboard")}
+                  >
+                    Get Started
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.nav>
+
+      {/* Hero Section */}
+      <section className="pt-20 pb-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            variants={heroVariants}
+            initial="hidden"
+            animate="visible"
+            className="text-center"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="mb-6"
+            >
+              <Badge variant="secondary" className="mb-4 px-4 py-2 text-sm">
+                <Sparkles className="w-4 h-4 mr-2" />
+                AI-Powered Content Creation Platform
+              </Badge>
+            </motion.div>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-6 leading-tight"
+            >
+              Create
+              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                {" "}
+                Amazing Content{" "}
+              </span>
+              with AI
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto"
+            >
+              Transform your ideas into professional videos, scripts, and
+              content with our advanced AI platform. Save time, boost
+              creativity, and scale your content production.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12"
+            >
+              <Button
+                size="lg"
+                className="px-8 py-4 text-lg"
+                onClick={() => navigate("/dashboard")}
+              >
+                <Rocket className="w-5 h-5 mr-2" />
+                Start Creating Free
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="px-8 py-4 text-lg"
+                onClick={() => setIsVideoPlaying(true)}
+              >
+                <Play className="w-5 h-5 mr-2" />
+                Watch Demo
+              </Button>
+            </motion.div>
+
+            {/* Hero Stats */}
+            <motion.div
+              variants={statsVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto"
+            >
+              {heroStats.map((stat, index) => (
+                <motion.div
+                  key={stat.label}
+                  variants={itemVariants}
+                  className="text-center p-4 rounded-xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50"
+                >
+                  <div
+                    className={`inline-flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 mb-3 ${stat.color}`}
+                  >
+                    {stat.icon}
+                  </div>
+                  <div className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                    {stat.value}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                    {stat.label}
+                  </div>
+                  <div className="text-xs text-green-600 dark:text-green-400 font-medium">
+                    {stat.change}
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-24 bg-gradient-to-b from-gray-50/50 to-white/50 dark:from-gray-900/50 dark:to-gray-800/50">
-        <div className="container mx-auto px-4">
+      <section id="features" className="py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
             viewport={{ once: true }}
-            className="text-center mb-20"
+            className="text-center mb-16"
           >
-            <Badge className="mb-6 px-4 py-2 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-              ✨ Tính năng nổi bật
-            </Badge>
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-              Công nghệ AI tiên tiến nhất
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              Khám phá bộ công cụ mạnh mẽ giúp bạn tạo ra nội dung chất lượng cao, 
-              thu hút triệu lượt xem và tối đa hóa doanh thu
-            </p>
+            <motion.h2
+              variants={itemVariants}
+              className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6"
+            >
+              Powerful Features for Modern Creators
+            </motion.h2>
+            <motion.p
+              variants={itemVariants}
+              className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto"
+            >
+              Everything you need to create, manage, and scale your content
+              production
+            </motion.p>
           </motion.div>
 
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <FeatureCard
+              <motion.div
                 key={feature.id}
-                feature={feature}
-                index={index}
-                onClick={(feat) => {
-                  if (feat.id === "ai-video") navigate("/tao-video");
-                  else if (feat.id === "script-ai") navigate("/quan-ly-kich-ban");
-                  else if (feat.id === "analytics") navigate("/analytics");
-                  else navigate("/quan-ly-du-an");
-                }}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing Section */}
-      <section className="py-24">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-20"
-          >
-            <Badge className="mb-6 px-4 py-2 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-              💰 Giá cả minh bạch
-            </Badge>
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-              Chọn gói phù hợp với bạn
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-8">
-              Bắt đầu miễn phí, nâng cấp khi cần. Không ràng buộc, hủy bất cứ lúc nào.
-            </p>
-            <div className="flex items-center justify-center space-x-2 text-sm text-green-600 dark:text-green-400">
-              <CheckCircle className="w-4 h-4" />
-              <span>Dùng thử 14 ngày miễn phí</span>
-              <CheckCircle className="w-4 h-4 ml-4" />
-              <span>Hủy bất cứ lúc nào</span>
-              <CheckCircle className="w-4 h-4 ml-4" />
-              <span>Hỗ trợ 24/7</span>
-            </div>
-          </motion.div>
-
-          <div className="grid gap-8 lg:grid-cols-3 max-w-6xl mx-auto">
-            {pricingPlans.map((plan, index) => (
-              <PricingCard
-                key={plan.id}
-                plan={plan}
-                onSelect={(selectedPlan) => {
-                  // Handle plan selection
-                  if (selectedPlan.id === "starter") {
-                    navigate("/tao-video");
-                  } else {
-                    navigate("/dashboard");
-                  }
-                }}
-                className={index === 1 ? "lg:scale-105 lg:-translate-y-4" : ""}
-              />
+                variants={itemVariants}
+                whileHover={{ y: -5 }}
+                className="relative"
+              >
+                <FeatureCard feature={feature} />
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-24 bg-gradient-to-b from-blue-50/50 to-purple-50/50 dark:from-blue-900/10 dark:to-purple-900/10">
-        <div className="container mx-auto px-4">
+      <section
+        id="testimonials"
+        className="py-16 px-4 sm:px-6 lg:px-8 bg-white/50 dark:bg-gray-800/50"
+      >
+        <div className="max-w-7xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
             viewport={{ once: true }}
-            className="text-center mb-20"
+            className="text-center mb-16"
           >
-            <Badge className="mb-6 px-4 py-2 bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-              ⭐ Phản hồi khách hàng
-            </Badge>
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-              50,000+ khách hàng tin tưởng
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              Những câu chuyện thành công thực tế từ các doanh nghiệp và cá nhân đã sử dụng MLT Script AI
-            </p>
+            <motion.h2
+              variants={itemVariants}
+              className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6"
+            >
+              Loved by Creators Worldwide
+            </motion.h2>
+            <motion.p
+              variants={itemVariants}
+              className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto"
+            >
+              See how MLT Script AI is transforming content creation for teams
+              and individuals
+            </motion.p>
           </motion.div>
 
-          <div className="grid gap-8 md:grid-cols-3 max-w-6xl mx-auto">
-            {testimonials.map((testimonial, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 dark:border-gray-700 group hover:border-blue-200 dark:hover:border-blue-700"
-                whileHover={{ y: -4 }}
-              >
-                <div className="flex items-center mb-6">
-                  <div className="text-4xl mr-4">{testimonial.avatar}</div>
-                  <div>
-                    <div className="font-semibold text-gray-900 dark:text-white">
-                      {testimonial.name}
-                    </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                      {testimonial.role}
-                    </div>
-                    <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-                      {testimonial.company}
+          <div className="relative">
+            <div className="flex overflow-hidden">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentSlide}
+                  initial={{ opacity: 0, x: 100 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -100 }}
+                  transition={{ duration: 0.5 }}
+                  className="w-full flex-shrink-0"
+                >
+                  <div className="max-w-4xl mx-auto">
+                    <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 md:p-12 shadow-xl border border-gray-200/50 dark:border-gray-700/50">
+                      <div className="flex items-center mb-6">
+                        <img
+                          src={testimonials[currentSlide].avatar}
+                          alt={testimonials[currentSlide].name}
+                          className="w-16 h-16 rounded-full object-cover mr-4"
+                        />
+                        <div>
+                          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                            {testimonials[currentSlide].name}
+                          </h3>
+                          <p className="text-gray-600 dark:text-gray-400">
+                            {testimonials[currentSlide].role} at{" "}
+                            {testimonials[currentSlide].company}
+                          </p>
+                          <div className="flex items-center mt-1">
+                            {[...Array(testimonials[currentSlide].rating)].map(
+                              (_, i) => (
+                                <Star
+                                  key={i}
+                                  className="w-4 h-4 fill-yellow-400 text-yellow-400"
+                                />
+                              )
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <blockquote className="text-lg md:text-xl text-gray-700 dark:text-gray-300 mb-6 italic">
+                        "{testimonials[currentSlide].content}"
+                      </blockquote>
+                      <div className="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                            {testimonials[currentSlide].stats.views}
+                          </div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                            Views
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                            {testimonials[currentSlide].stats.engagement}
+                          </div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                            Engagement
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                            {testimonials[currentSlide].stats.growth}
+                          </div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                            Growth
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-                
-                <div className="flex items-center mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                  ))}
-                </div>
-                
-                <p className="text-gray-600 dark:text-gray-300 italic leading-relaxed group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors">
-                  "{testimonial.content}"
-                </p>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* Navigation Dots */}
+            <div className="flex justify-center mt-8 space-x-2">
+              {testimonials.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentSlide(index)}
+                  className={`w-3 h-3 rounded-full transition-colors ${
+                    index === currentSlide
+                      ? "bg-blue-600 dark:bg-blue-400"
+                      : "bg-gray-300 dark:bg-gray-600"
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" className="py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <motion.h2
+              variants={itemVariants}
+              className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6"
+            >
+              Choose Your Plan
+            </motion.h2>
+            <motion.p
+              variants={itemVariants}
+              className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto"
+            >
+              Start free and scale as you grow. No hidden fees, cancel anytime.
+            </motion.p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {pricingPlans.map((plan, index) => (
+              <motion.div
+                key={plan.id}
+                variants={itemVariants}
+                whileHover={{ y: -5 }}
+                className="relative"
+              >
+                <PricingCard plan={plan} />
               </motion.div>
             ))}
           </div>
@@ -411,72 +920,227 @@ export default function NewHome() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 via-purple-900/20 to-pink-900/20" />
-        <div className="container mx-auto px-4 relative z-10">
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-purple-600">
+        <div className="max-w-4xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
             viewport={{ once: true }}
-            className="text-center max-w-4xl mx-auto"
+            transition={{ duration: 0.6 }}
           >
-            <div className="flex items-center justify-center mb-6">
-              <Award className="w-12 h-12 text-yellow-300 mr-4" />
-              <Badge className="bg-yellow-100 text-yellow-800 px-4 py-2">
-                🏆 Startup of the Year 2024
-              </Badge>
-            </div>
-            
-            <h2 className="text-4xl lg:text-6xl font-bold text-white mb-8">
-              Sẵn sàng thay đổi cuộc chơi?
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+              Ready to Transform Your Content Creation?
             </h2>
-            
-            <p className="text-xl lg:text-2xl text-blue-100 mb-10 leading-relaxed">
-              Tham gia cộng đồng hơn 50,000 người sáng tạo đang kiếm tiền từ 
-              nội dung AI chất lượng cao mỗi ngày
+            <p className="text-xl text-blue-100 mb-8">
+              Join thousands of creators who are already using MLT Script AI to
+              scale their content production.
             </p>
-            
-            <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <Link to="/tao-video">
-                <Button
-                  size="lg"
-                  variant="secondary"
-                  className="text-lg px-10 py-4 bg-white text-gray-900 hover:bg-gray-100 shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105"
-                >
-                  <Zap className="w-6 h-6 mr-3" />
-                  Bắt đầu miễn phí ngay
-                </Button>
-              </Link>
-              <Link to="/dashboard">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="text-lg px-10 py-4 border-2 border-white/30 text-white hover:bg-white/10 backdrop-blur-sm transition-all duration-300"
-                >
-                  <Shield className="w-6 h-6 mr-3" />
-                  Enterprise Demo
-                </Button>
-              </Link>
-            </div>
-            
-            <div className="mt-12 flex items-center justify-center space-x-8 text-blue-100">
-              <div className="flex items-center">
-                <CheckCircle className="w-5 h-5 mr-2" />
-                <span>Không cần thẻ tín dụng</span>
-              </div>
-              <div className="flex items-center">
-                <CheckCircle className="w-5 h-5 mr-2" />
-                <span>Setup trong 30 giây</span>
-              </div>
-              <div className="flex items-center">
-                <CheckCircle className="w-5 h-5 mr-2" />
-                <span>Cancel anytime</span>
-              </div>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                size="lg"
+                variant="secondary"
+                className="px-8 py-4 text-lg"
+                onClick={() => navigate("/dashboard")}
+              >
+                <Rocket className="w-5 h-5 mr-2" />
+                Start Free Trial
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="px-8 py-4 text-lg border-white text-white hover:bg-white hover:text-blue-600"
+              >
+                <MessageCircle className="w-5 h-5 mr-2" />
+                Contact Sales
+              </Button>
             </div>
           </motion.div>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+              <div className="flex items-center space-x-2 mb-4">
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-xl font-bold">MLT Script AI</span>
+              </div>
+              <p className="text-gray-400 mb-4">
+                The ultimate AI-powered content creation platform for modern
+                creators.
+              </p>
+              <div className="flex space-x-4">
+                <a
+                  href="#"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <Twitter className="w-5 h-5" />
+                </a>
+                <a
+                  href="#"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <Linkedin className="w-5 h-5" />
+                </a>
+                <a
+                  href="#"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <Youtube className="w-5 h-5" />
+                </a>
+                <a
+                  href="#"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <Github className="w-5 h-5" />
+                </a>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Product</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Features
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Pricing
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    API
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Integrations
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Company</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    About
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Blog
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Careers
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Press
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Support</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Help Center
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Contact
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Status
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Security
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+            <p className="text-gray-400 text-sm">
+              © 2024 MLT Script AI. All rights reserved.
+            </p>
+            <div className="flex space-x-6 mt-4 md:mt-0">
+              <a
+                href="#"
+                className="text-gray-400 hover:text-white text-sm transition-colors"
+              >
+                Privacy Policy
+              </a>
+              <a
+                href="#"
+                className="text-gray-400 hover:text-white text-sm transition-colors"
+              >
+                Terms of Service
+              </a>
+              <a
+                href="#"
+                className="text-gray-400 hover:text-white text-sm transition-colors"
+              >
+                Cookie Policy
+              </a>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      {/* Video Modal */}
+      <AnimatePresence>
+        {isVideoPlaying && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setIsVideoPlaying(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              className="relative max-w-4xl w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setIsVideoPlaying(false)}
+                className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors"
+              >
+                <X className="w-8 h-8" />
+              </button>
+              <div className="aspect-video bg-gray-900 rounded-lg flex items-center justify-center">
+                <div className="text-center text-white">
+                  <Play className="w-16 h-16 mx-auto mb-4" />
+                  <p className="text-lg">Demo Video Coming Soon</p>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
