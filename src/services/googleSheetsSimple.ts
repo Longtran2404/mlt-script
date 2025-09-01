@@ -213,11 +213,14 @@ class GoogleSheetsSimpleService {
 
       const cleanStr = timestampStr.toString().trim();
 
-      // Support multiple timestamp formats
+      // Support multiple timestamp formats including the sheet's format
       const patterns = [
-        /^(\d{1,2}):(\d{1,2}):(\d{1,2})(?:[,.](\d{1,3}))?$/, // HH:MM:SS.mmm
-        /^(\d{1,2}):(\d{1,2})(?:[,.](\d{1,3}))?$/, // MM:SS.mmm
-        /^(\d{1,2})(?:[,.](\d{1,3}))?$/, // SS.mmm
+        /^(\d{1,2}):(\d{1,2}):(\d{1,2})\.(\d{1,3})$/, // HH:MM:SS.mmm (like 14:43:23.086)
+        /^(\d{1,2}):(\d{1,2}):(\d{1,2})[,.](\d{1,3})$/, // HH:MM:SS,mmm or HH:MM:SS.mmm
+        /^(\d{1,2}):(\d{1,2}):(\d{1,2})$/, // HH:MM:SS
+        /^(\d{1,2}):(\d{1,2})[,.](\d{1,3})$/, // MM:SS.mmm
+        /^(\d{1,2}):(\d{1,2})$/, // MM:SS
+        /^(\d{1,2})[,.](\d{1,3})$/, // SS.mmm
       ];
 
       for (const regex of patterns) {
@@ -273,18 +276,27 @@ class GoogleSheetsSimpleService {
     const headers = rawData[0];
     console.log("📋 Processing headers:", headers);
 
-    // Find timestamp column - look for various timestamp-related headers
-    const timestampColumnIndex = headers.findIndex((header: string) => {
+    // Find timestamp column - prioritize the correct column
+    let timestampColumnIndex = headers.findIndex((header: string) => {
       const headerLower = header.toLowerCase();
       return (
-        headerLower.includes("giờ") ||
-        headerLower.includes("time") ||
-        headerLower.includes("timestamp") ||
-        headerLower.includes("thời") ||
-        headerLower.includes("phút") ||
-        headerLower.includes("giây")
+        headerLower.includes("giờ:phút:giây") ||
+        headerLower.includes("giờ phút giây") ||
+        headerLower === "giờ:phút:giây.mili" ||
+        headerLower === "timestamp"
       );
     });
+
+    // Fallback to other time-related columns if specific format not found
+    if (timestampColumnIndex === -1) {
+      timestampColumnIndex = headers.findIndex((header: string) => {
+        const headerLower = header.toLowerCase();
+        return (
+          headerLower.includes("time") ||
+          (headerLower.includes("giờ") && headerLower.includes("phút") && headerLower.includes("giây"))
+        );
+      });
+    }
 
     if (timestampColumnIndex === -1) {
       console.error("❌ Không tìm thấy cột timestamp trong headers:", headers);
