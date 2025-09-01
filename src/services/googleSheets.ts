@@ -241,6 +241,27 @@ class GoogleSheetsService {
     console.warn("⚠️ Add script not supported with CSV method. Please add data directly in Google Sheets.");
     return false;
   }
+
+  // Convenience methods for different data types
+  async getUsers(): Promise<UserData[]> {
+    return this.getData<UserData>(this.SHEET_ID, 'users');
+  }
+
+  async getProjects(): Promise<ProjectData[]> {
+    return this.getData<ProjectData>(this.SHEET_ID, 'projects');
+  }
+
+  async getAnalytics(): Promise<AnalyticsData[]> {
+    return this.getData<AnalyticsData>(this.SHEET_ID, 'analytics');
+  }
+
+  async getScripts(): Promise<ScriptData[]> {
+    return this.getData<ScriptData>(this.SHEET_ID, 'scripts');
+  }
+
+  async getVideos(): Promise<VideoData[]> {
+    return this.getData<VideoData>(this.SHEET_ID, 'videos');
+  }
 }
 
 export const googleSheetsService = new GoogleSheetsService();
