@@ -1,5 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Video,
   FileText,
@@ -19,11 +20,9 @@ import { Badge } from "../components/ui/badge";
 import { PricingCard, PricingPlan } from "../components/ui/pricing-card";
 import { FeatureCard, Feature } from "../components/ui/feature-card";
 
-interface NewHomeProps {
-  onPageChange: (page: string) => void;
-}
-
-export default function NewHome({ onPageChange }: NewHomeProps) {
+export default function NewHome() {
+  const navigate = useNavigate();
+  
   // Hero Stats
   const heroStats = [
     { label: "Dự án hoàn thành", value: "10,000+", change: "+25%" },
@@ -201,23 +200,25 @@ export default function NewHome({ onPageChange }: NewHomeProps) {
               </p>
               
               <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
-                <Button 
-                  size="lg" 
-                  className="text-lg px-10 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105"
-                  onClick={() => onPageChange("tao-video")}
-                >
-                  <Play className="w-6 h-6 mr-3" />
-                  Tạo Video AI Miễn Phí
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  className="text-lg px-10 py-4 border-2 border-gray-300 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-400 transition-all duration-300"
-                  onClick={() => onPageChange("dashboard")}
-                >
-                  <ArrowRight className="w-6 h-6 mr-3" />
-                  Xem Demo Live
-                </Button>
+                <Link to="/tao-video">
+                  <Button 
+                    size="lg" 
+                    className="text-lg px-10 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105"
+                  >
+                    <Play className="w-6 h-6 mr-3" />
+                    Tạo Video AI Miễn Phí
+                  </Button>
+                </Link>
+                <Link to="/dashboard">
+                  <Button 
+                    variant="outline" 
+                    size="lg" 
+                    className="text-lg px-10 py-4 border-2 border-gray-300 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-400 transition-all duration-300"
+                  >
+                    <ArrowRight className="w-6 h-6 mr-3" />
+                    Xem Demo Live
+                  </Button>
+                </Link>
               </div>
 
               {/* Hero Stats */}
@@ -287,10 +288,10 @@ export default function NewHome({ onPageChange }: NewHomeProps) {
                 feature={feature}
                 index={index}
                 onClick={(feat) => {
-                  if (feat.id === "ai-video") onPageChange("tao-video");
-                  else if (feat.id === "script-ai") onPageChange("tao-kich-ban");
-                  else if (feat.id === "analytics") onPageChange("analytics");
-                  else onPageChange("project-management");
+                  if (feat.id === "ai-video") navigate("/tao-video");
+                  else if (feat.id === "script-ai") navigate("/quan-ly-kich-ban");
+                  else if (feat.id === "analytics") navigate("/analytics");
+                  else navigate("/quan-ly-du-an");
                 }}
               />
             ))}
@@ -335,9 +336,9 @@ export default function NewHome({ onPageChange }: NewHomeProps) {
                 onSelect={(selectedPlan) => {
                   // Handle plan selection
                   if (selectedPlan.id === "starter") {
-                    onPageChange("tao-video");
+                    navigate("/tao-video");
                   } else {
-                    onPageChange("dashboard");
+                    navigate("/dashboard");
                   }
                 }}
                 className={index === 1 ? "lg:scale-105 lg:-translate-y-4" : ""}
@@ -437,24 +438,26 @@ export default function NewHome({ onPageChange }: NewHomeProps) {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <Button
-                size="lg"
-                variant="secondary"
-                className="text-lg px-10 py-4 bg-white text-gray-900 hover:bg-gray-100 shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105"
-                onClick={() => onPageChange("tao-video")}
-              >
-                <Zap className="w-6 h-6 mr-3" />
-                Bắt đầu miễn phí ngay
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="text-lg px-10 py-4 border-2 border-white/30 text-white hover:bg-white/10 backdrop-blur-sm transition-all duration-300"
-                onClick={() => onPageChange("dashboard")}
-              >
-                <Shield className="w-6 h-6 mr-3" />
-                Enterprise Demo
-              </Button>
+              <Link to="/tao-video">
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  className="text-lg px-10 py-4 bg-white text-gray-900 hover:bg-gray-100 shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105"
+                >
+                  <Zap className="w-6 h-6 mr-3" />
+                  Bắt đầu miễn phí ngay
+                </Button>
+              </Link>
+              <Link to="/dashboard">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="text-lg px-10 py-4 border-2 border-white/30 text-white hover:bg-white/10 backdrop-blur-sm transition-all duration-300"
+                >
+                  <Shield className="w-6 h-6 mr-3" />
+                  Enterprise Demo
+                </Button>
+              </Link>
             </div>
             
             <div className="mt-12 flex items-center justify-center space-x-8 text-blue-100">

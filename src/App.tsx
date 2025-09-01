@@ -10,7 +10,6 @@ import "./App.css";
 import EnhancedDashboard from "./pages/EnhancedDashboard";
 import ScriptManager from "./pages/ScriptManager";
 import TaoVideo from "./pages/TaoVideo";
-import QuanLy from "./pages/QuanLy";
 import ProjectManagement from "./pages/ProjectManagement";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
