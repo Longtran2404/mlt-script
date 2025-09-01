@@ -355,6 +355,40 @@ class GoogleAuthService {
 class VLUScriptService {
   private authService = new GoogleAuthService();
 
+  // Get all sheets in the spreadsheet
+  async getAllSheets(): Promise<Array<{id: number, title: string}>> {
+    try {
+      if (!this.authService.isSignedIn()) {
+        const signedIn = await this.authService.signIn();
+        if (!signedIn) {
+          throw new Error("Không thể đăng nhập Google");
+        }
+      }
+
+      console.log("Getting all sheets from spreadsheet:", VLU_SCRIPT_SHEET.sheet_id);
+      
+      // Set authorization token
+      window.gapi.client.setToken({ access_token: this.authService.accessToken });
+      
+      // Get spreadsheet metadata to list all sheets
+      const response = await window.gapi.client.sheets.spreadsheets.get({
+        spreadsheetId: VLU_SCRIPT_SHEET.sheet_id,
+      });
+
+      const sheets = response.result.sheets || [];
+      const sheetList = sheets.map(sheet => ({
+        id: sheet.properties.sheetId,
+        title: sheet.properties.title
+      }));
+
+      console.log("Found sheets:", sheetList);
+      return sheetList;
+    } catch (error) {
+      console.error("Error getting all sheets:", error);
+      return [];
+    }
+  }
+
   // Find VLU Script Sheet by name or use configured ID
   async findVLUScriptSheet(): Promise<string | null> {
     try {
@@ -642,7 +676,100 @@ class VLUScriptService {
     return scripts;
   }
 
-  // Load VLU Scripts from Google Sheets
+  // Load scripts from a specific sheet by name
+  async loadScriptsFromSheet(sheetName: string): Promise<Script[]> {
+    try {
+      console.log("Loading scripts from sheet:", sheetName);
+
+      // Ensure user is signed in
+      if (!this.authService.isSignedIn()) {
+        console.log("User not signed in, attempting sign in...");
+        const signedIn = await this.authService.signIn();
+        if (!signedIn) {
+          throw new Error("Không thể đăng nhập Google");
+        }
+      }
+
+      // Get spreadsheet ID
+      const sheetId = VLU_SCRIPT_SHEET.sheet_id;
+      if (!sheetId) {
+        throw new Error('Không tìm thấy Google Spreadsheet ID');
+      }
+
+      console.log("Found spreadsheet ID:", sheetId);
+
+      // Test connection first
+      console.log("Testing sheet connection...");
+      const connectionTest = await this.testSheetConnection(sheetId);
+      if (!connectionTest) {
+        throw new Error("Không thể kết nối đến Google Sheet. Vui lòng kiểm tra:\n1. Sheet có được chia sẻ công khai?\n2. Sheet ID có đúng không?\n3. Tài khoản có quyền truy cập?");
+      }
+
+      // Get sheet data from specific sheet
+      console.log("Getting sheet data from sheet:", sheetName);
+      const rawData = await this.getSheetData(sheetId, `${sheetName}!A:Z`);
+      if (rawData.length === 0) {
+        console.log("No data found in sheet");
+        return [];
+      }
+
+      console.log("Raw data loaded:", rawData.length, "rows");
+
+      // Group and parse scripts
+      const scripts = this.groupScenesByTimestamp(rawData);
+      console.log("Scripts parsed:", scripts.length, "scripts from sheet:", sheetName);
+      return scripts;
+    } catch (error) {
+      console.error("Error loading scripts from sheet:", error);
+      throw error; // Re-throw to let the UI handle the error
+    }
+  }
+
+  // Load scripts from all sheets in the spreadsheet
+  async loadAllScriptsFromAllSheets(): Promise<Script[]> {
+    try {
+      console.log("Loading scripts from all sheets...");
+
+      // Get all sheets first
+      const sheets = await this.getAllSheets();
+      if (sheets.length === 0) {
+        console.log("No sheets found in spreadsheet");
+        return [];
+      }
+
+      console.log(`Found ${sheets.length} sheets, loading scripts from each...`);
+
+      const allScripts: Script[] = [];
+      
+      // Load scripts from each sheet
+      for (const sheet of sheets) {
+        try {
+          console.log(`Loading from sheet: ${sheet.title}`);
+          const sheetScripts = await this.loadScriptsFromSheet(sheet.title);
+          
+          // Add sheet name to script titles to distinguish them
+          const labeledScripts = sheetScripts.map(script => ({
+            ...script,
+            title: `[${sheet.title}] ${script.title}`,
+            tags: [...script.tags, sheet.title]
+          }));
+          
+          allScripts.push(...labeledScripts);
+        } catch (error) {
+          console.warn(`Failed to load from sheet ${sheet.title}:`, error);
+          // Continue with other sheets even if one fails
+        }
+      }
+
+      console.log(`Total scripts loaded from all sheets: ${allScripts.length}`);
+      return allScripts;
+    } catch (error) {
+      console.error("Error loading scripts from all sheets:", error);
+      throw error;
+    }
+  }
+
+  // Load VLU Scripts from Google Sheets (backward compatibility - load from default sheet)
   async loadVLUScripts(): Promise<Script[]> {
     try {
       console.log("Starting to load VLU Scripts...");
@@ -656,36 +783,8 @@ class VLUScriptService {
         }
       }
 
-      // Find VLU Script Sheet
-      console.log("Finding VLU Script Sheet...");
-      const sheetId = await this.findVLUScriptSheet();
-      if (!sheetId) {
-        throw new Error('Không tìm thấy Google Sheet "VLU-KỊCH BẢN"');
-      }
-
-      console.log("Found sheet ID:", sheetId);
-
-      // Test connection first
-      console.log("Testing sheet connection...");
-      const connectionTest = await this.testSheetConnection(sheetId);
-      if (!connectionTest) {
-        throw new Error("Không thể kết nối đến Google Sheet. Vui lòng kiểm tra:\n1. Sheet có được chia sẻ công khai?\n2. Sheet ID có đúng không?\n3. Tài khoản có quyền truy cập?");
-      }
-
-      // Get sheet data
-      console.log("Getting sheet data...");
-      const rawData = await this.getSheetData(sheetId);
-      if (rawData.length === 0) {
-        console.log("No data found in sheet");
-        return [];
-      }
-
-      console.log("Raw data loaded:", rawData.length, "rows");
-
-      // Group and parse scripts
-      const scripts = this.groupScenesByTimestamp(rawData);
-      console.log("Scripts parsed:", scripts.length, "scripts");
-      return scripts;
+      // Try to load from all sheets for better user experience
+      return await this.loadAllScriptsFromAllSheets();
     } catch (error) {
       console.error("Error loading VLU Scripts:", error);
       throw error; // Re-throw to let the UI handle the error

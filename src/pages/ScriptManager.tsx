@@ -45,20 +45,46 @@ export default function ScriptManager() {
   const [hasChanges, setHasChanges] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
   const [autoSaveTimer, setAutoSaveTimer] = useState<NodeJS.Timeout | null>(null);
+  const [availableSheets, setAvailableSheets] = useState<Array<{id: number, title: string}>>([]);
+  const [selectedSheet, setSelectedSheet] = useState<string>("all");
+  const [loadMode, setLoadMode] = useState<"all" | "single">("all");
+
+  const loadAvailableSheets = useCallback(async () => {
+    if (!isConnected) return;
+
+    try {
+      const sheets = await vluScriptService.getAllSheets();
+      setAvailableSheets(sheets);
+    } catch (error) {
+      console.error("Error loading available sheets:", error);
+    }
+  }, [isConnected]);
 
   const loadScripts = useCallback(async () => {
     if (!isConnected) return;
 
     setLoading(true);
     try {
-      const loadedScripts = await vluScriptService.loadVLUScripts();
+      let loadedScripts: Script[];
+      
+      if (loadMode === "all") {
+        // Load from all sheets
+        loadedScripts = await vluScriptService.loadAllScriptsFromAllSheets();
+      } else if (selectedSheet !== "all") {
+        // Load from specific sheet
+        loadedScripts = await vluScriptService.loadScriptsFromSheet(selectedSheet);
+      } else {
+        // Fallback to default behavior
+        loadedScripts = await vluScriptService.loadVLUScripts();
+      }
+      
       setScripts(loadedScripts);
     } catch (error) {
       console.error("Error loading scripts:", error);
     } finally {
       setLoading(false);
     }
-  }, [isConnected]);
+  }, [isConnected, loadMode, selectedSheet]);
 
   const checkGoogleConnection = async () => {
     try {
@@ -88,6 +114,7 @@ export default function ScriptManager() {
         setIsConnected(true);
         const user = vluScriptService.getAuthService().getUserInfo();
         setUserInfo(user);
+        await loadAvailableSheets();
         await loadScripts();
       } else {
         alert("Không thể đăng nhập Google. Vui lòng thử lại!");
@@ -128,10 +155,19 @@ export default function ScriptManager() {
 
   useEffect(() => {
     if (isConnected) {
+      loadAvailableSheets();
       loadScripts();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isConnected]);
+
+  // Load scripts when sheet selection changes
+  useEffect(() => {
+    if (isConnected) {
+      loadScripts();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadMode, selectedSheet]);
 
   const saveScript = async (script: Script) => {
     setSaving(true);
@@ -309,8 +345,10 @@ export default function ScriptManager() {
             Quản lý Kịch bản VLU
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Tích hợp với Google Sheets "VLU-KỊCH BẢN" - Tự động phân cảnh theo
-            timestamp
+            {loadMode === "all" 
+              ? `Hiển thị từ ${availableSheets.length} sheet(s) - Tự động phân cảnh theo timestamp`
+              : `Hiển thị từ sheet "${selectedSheet}" - Tự động phân cảnh theo timestamp`
+            }
           </p>
         </div>
 
@@ -377,19 +415,48 @@ export default function ScriptManager() {
           />
         </div>
 
-        <div className="flex items-center space-x-2">
-          <Filter className="w-4 h-4 text-gray-500" />
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-          >
-            <option value="all">Tất cả</option>
-            <option value="draft">Bản nháp</option>
-            <option value="in_progress">Đang thực hiện</option>
-            <option value="completed">Hoàn thành</option>
-            <option value="published">Đã xuất bản</option>
-          </select>
+        <div className="flex items-center space-x-3">
+          {/* Sheet Selection */}
+          <div className="flex items-center space-x-2">
+            <FileText className="w-4 h-4 text-blue-500" />
+            <select
+              value={loadMode === "all" ? "all" : selectedSheet}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === "all") {
+                  setLoadMode("all");
+                  setSelectedSheet("all");
+                } else {
+                  setLoadMode("single");
+                  setSelectedSheet(value);
+                }
+              }}
+              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white min-w-[150px]"
+            >
+              <option value="all">📊 Tất cả Sheet</option>
+              {availableSheets.map(sheet => (
+                <option key={sheet.id} value={sheet.title}>
+                  📄 {sheet.title}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Status Filter */}
+          <div className="flex items-center space-x-2">
+            <Filter className="w-4 h-4 text-gray-500" />
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+            >
+              <option value="all">Tất cả</option>
+              <option value="draft">Bản nháp</option>
+              <option value="in_progress">Đang thực hiện</option>
+              <option value="completed">Hoàn thành</option>
+              <option value="published">Đã xuất bản</option>
+            </select>
+          </div>
         </div>
       </motion.div>
 
