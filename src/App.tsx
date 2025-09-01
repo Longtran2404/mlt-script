@@ -1,5 +1,11 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+
+function DebugRouter() {
+  const location = useLocation();
+  console.log("🚦 Current path:", location.pathname);
+  return null;
+}
 import { ThemeProvider } from "./contexts/ThemeContext";
 import MainLayout from "./components/layout/MainLayout";
 import NewHome from "./pages/NewHome";
@@ -21,6 +27,7 @@ function App() {
     <ThemeProvider>
       <Router>
         <div className="App">
+          <DebugRouter />
           <Routes>
             {/* Trang chủ với MainLayout nhưng không có sidebar */}
             <Route path="/" element={

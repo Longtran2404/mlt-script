@@ -29,6 +29,7 @@ import { StatsCard, StatsData } from "../components/ui/stats-card";
 import { googleSheetsService, UserData, ProjectData, AnalyticsData } from "../services/googleSheets";
 
 export default function EnhancedDashboard() {
+  console.log("📊 Rendering EnhancedDashboard page");
   const [users, setUsers] = useState<UserData[]>([]);
   const [projects, setProjects] = useState<ProjectData[]>([]);
   const [analytics, setAnalytics] = useState<AnalyticsData[]>([]);
