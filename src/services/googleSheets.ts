@@ -68,14 +68,92 @@ export interface VideoData {
   views: number;
 }
 
-// Google Sheets API service with real data integration
+// Google Sheets API service with real API integration
 class GoogleSheetsService {
   private readonly SHEET_ID = process.env.REACT_APP_VLU_SCRIPT_SHEET_ID || 
     "1Q43gGNkseRl5dZDnenhNVvJCf7cappiKykCraqL-B-A";
   private readonly GID = 707725074; // Correct GID for the sheet
+  private readonly API_KEY = process.env.REACT_APP_GOOGLE_API_KEY;
+  private accessToken: string | null = null;
 
-  // Get real data from Google Sheets CSV export
-  async getData<T>(sheetId: string = this.SHEET_ID, range: string): Promise<T[]> {
+  // Get access token from localStorage
+  private loadAccessToken(): void {
+    try {
+      const tokenData = localStorage.getItem("google_access_token");
+      if (tokenData) {
+        const parsed = JSON.parse(tokenData);
+        if (parsed.access_token && parsed.expiry > Date.now()) {
+          this.accessToken = parsed.access_token;
+          console.log("✅ Google API access token loaded");
+        } else {
+          console.log("❌ Access token expired");
+          localStorage.removeItem("google_access_token");
+          this.accessToken = null;
+        }
+      }
+    } catch (error) {
+      console.error("❌ Error loading access token:", error);
+      this.accessToken = null;
+    }
+  }
+
+  // Get data using Google Sheets API v4
+  async getDataViaAPI<T>(sheetId: string, range: string = "A:Z"): Promise<T[]> {
+    try {
+      this.loadAccessToken();
+      
+      if (!this.accessToken) {
+        console.log("⚠️ No access token - falling back to CSV");
+        return this.getDataViaCSV<T>(sheetId, range);
+      }
+
+      console.log("🔄 Getting data via Google Sheets API:", sheetId, range);
+      
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}`;
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${this.accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        console.log("❌ API request failed:", response.status, "- falling back to CSV");
+        return this.getDataViaCSV<T>(sheetId, range);
+      }
+
+      const data = await response.json();
+      const values = data.values || [];
+      
+      if (values.length <= 1) {
+        console.warn("⚠️ No data rows found in API response");
+        return [];
+      }
+
+      const headers = values[0];
+      const parsedData: T[] = [];
+      
+      // Convert rows to objects
+      for (let i = 1; i < values.length; i++) {
+        const cells = values[i] || [];
+        const item = this.convertRowToObject<T>(headers, cells, range, i);
+        if (item) {
+          parsedData.push(item);
+        }
+      }
+      
+      console.log("✅ API data loaded:", parsedData.length, "items from", range);
+      return parsedData;
+      
+    } catch (error) {
+      console.error("❌ Error fetching data via API:", error);
+      console.log("🔄 Falling back to CSV method");
+      return this.getDataViaCSV<T>(sheetId, range);
+    }
+  }
+
+  // Fallback: Get data from Google Sheets CSV export
+  async getDataViaCSV<T>(sheetId: string = this.SHEET_ID, range: string): Promise<T[]> {
     try {
       console.log("🔄 Getting real data from Google Sheets:", sheetId, range);
       
@@ -216,30 +294,143 @@ class GoogleSheetsService {
     return isNaN(num) ? 0 : num;
   }
 
-  // Update data in Google Sheets (read-only for CSV method)
+  // Update data in Google Sheets (tries API first)
   async updateData(
     sheetId: string,
     range: string,
     values: any[][]
   ): Promise<boolean> {
-    console.warn("⚠️ Update not supported with CSV method. Use Google Sheets directly to edit data.");
-    return false;
+    this.loadAccessToken();
+    
+    if (this.accessToken) {
+      return this.updateDataViaAPI(sheetId, range, values);
+    } else {
+      console.warn("⚠️ Update requires Google OAuth. Please connect your Google account first.");
+      return false;
+    }
   }
 
-  // Append data to Google Sheets (read-only for CSV method)
+  // Append data to Google Sheets (tries API first)
   async appendData(
     sheetId: string,
     range: string,
     values: any[][]
   ): Promise<boolean> {
-    console.warn("⚠️ Append not supported with CSV method. Use Google Sheets directly to add data.");
-    return false;
+    try {
+      this.loadAccessToken();
+      
+      if (!this.accessToken) {
+        console.warn("⚠️ Append requires Google OAuth. Please connect your Google account first.");
+        return false;
+      }
+
+      console.log("🔄 Appending via API:", sheetId, range);
+      
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          values: values
+        })
+      });
+
+      if (response.ok) {
+        console.log("✅ Data appended via API");
+        return true;
+      } else {
+        console.error("❌ API append failed:", response.status);
+        return false;
+      }
+    } catch (error) {
+      console.error("❌ Error appending via API:", error);
+      return false;
+    }
   }
 
-  // Add a new script to the sheet (CSV method doesn't support write operations)
+  // Add a new script to the sheet (uses API if available)
   async addScript(newScript: Omit<ScriptData, "id">): Promise<boolean> {
-    console.warn("⚠️ Add script not supported with CSV method. Please add data directly in Google Sheets.");
-    return false;
+    this.loadAccessToken();
+    
+    if (this.accessToken) {
+      const values = [
+        [
+          Date.now().toString(), // Generate ID
+          newScript.title,
+          newScript.content,
+          newScript.type,
+          newScript.tone,
+          newScript.language,
+          newScript.duration.toString(),
+          newScript.status,
+          newScript.createdBy,
+          newScript.createdAt,
+          newScript.updatedAt,
+          newScript.wordCount.toString(),
+          newScript.tags.join(","),
+        ],
+      ];
+      
+      return this.appendData(this.SHEET_ID, "A:M", values);
+    } else {
+      console.warn("⚠️ Add script requires Google OAuth. Please connect your Google account first.");
+      return false;
+    }
+  }
+
+  // Main getData method - tries API first, falls back to CSV
+  async getData<T>(sheetId: string = this.SHEET_ID, range: string): Promise<T[]> {
+    console.log("🔄 getData called with:", sheetId, range);
+    
+    // Try API first (if we have access token)
+    this.loadAccessToken();
+    if (this.accessToken) {
+      console.log("🔑 Access token available - trying API");
+      return this.getDataViaAPI<T>(sheetId, range);
+    } else {
+      console.log("📄 No access token - using CSV method");
+      return this.getDataViaCSV<T>(sheetId, range);
+    }
+  }
+
+  // API method to update data (requires OAuth token)
+  async updateDataViaAPI(sheetId: string, range: string, values: any[][]): Promise<boolean> {
+    try {
+      this.loadAccessToken();
+      
+      if (!this.accessToken) {
+        console.warn("⚠️ No access token for update operation");
+        return false;
+      }
+
+      console.log("🔄 Updating via API:", sheetId, range);
+      
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?valueInputOption=RAW`;
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${this.accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          values: values
+        })
+      });
+
+      if (response.ok) {
+        console.log("✅ Data updated via API");
+        return true;
+      } else {
+        console.error("❌ API update failed:", response.status);
+        return false;
+      }
+    } catch (error) {
+      console.error("❌ Error updating via API:", error);
+      return false;
+    }
   }
 
   // Convenience methods for different data types
