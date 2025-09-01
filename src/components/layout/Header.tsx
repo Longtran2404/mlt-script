@@ -28,6 +28,7 @@ export default function Header() {
 
   const services = [
     { name: "Tạo Video AI", href: "/tao-video", icon: "🎬" },
+    { name: "Tạo Kịch Bản AI", href: "/tao-kich-ban", icon: "📝" },
     { name: "Quản Lý Kịch Bản", href: "/quan-ly-kich-ban", icon: "✍️" },
     { name: "Quản Lý Dự Án", href: "/quan-ly-du-an", icon: "📋" },
     { name: "Analytics", href: "/analytics", icon: "📊" },

@@ -38,6 +38,13 @@ export default function Sidebar() {
       highlight: true,
     },
     {
+      name: "Tạo Kịch Bản AI",
+      href: "/tao-kich-ban",
+      icon: <FileText className="w-5 h-5" />,
+      current: location.pathname === "/tao-kich-ban",
+      highlight: true,
+    },
+    {
       name: "Quản Lý Kịch Bản",
       href: "/quan-ly-kich-ban",
       icon: <FileText className="w-5 h-5" />,

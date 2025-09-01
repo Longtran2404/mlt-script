@@ -1,11 +1,5 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
-
-function DebugRouter() {
-  const location = useLocation();
-  console.log("🚦 Current path:", location.pathname);
-  return null;
-}
 import { ThemeProvider } from "./contexts/ThemeContext";
 import MainLayout from "./components/layout/MainLayout";
 import NewHome from "./pages/NewHome";
@@ -16,11 +10,18 @@ import "./App.css";
 import EnhancedDashboard from "./pages/EnhancedDashboard";
 import ScriptManager from "./pages/ScriptManager";
 import TaoVideo from "./pages/TaoVideo";
+import TaoKichBan from "./pages/TaoKichBan";
 import ProjectManagement from "./pages/ProjectManagement";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import Help from "./pages/Help";
 import OAuth2Callback from "./pages/OAuth2Callback";
+
+function DebugRouter() {
+  const location = useLocation();
+  console.log("🚦 Current path:", location.pathname);
+  return null;
+}
 
 function App() {
   return (
@@ -49,6 +50,14 @@ function App() {
               <MainLayout showSidebar={true}>
                 <div className="container mx-auto px-4 py-8">
                   <TaoVideo />
+                </div>
+              </MainLayout>
+            } />
+
+            <Route path="/tao-kich-ban" element={
+              <MainLayout showSidebar={true}>
+                <div className="container mx-auto px-4 py-8">
+                  <TaoKichBan />
                 </div>
               </MainLayout>
             } />
