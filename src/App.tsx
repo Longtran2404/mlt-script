@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import MainLayout from "./components/layout/MainLayout";
 import NewHome from "./pages/NewHome";
@@ -15,7 +15,6 @@ import ProjectManagement from "./pages/ProjectManagement";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import Help from "./pages/Help";
-import OAuth2Callback from "./pages/OAuth2Callback";
 
 
 function App() {
@@ -97,7 +96,6 @@ function App() {
             } />
             
             {/* Special routes */}
-            <Route path="/oauth2/callback" element={<OAuth2Callback />} />
             <Route path="/service-demo" element={
               <MainLayout showSidebar={true}>
                 <div className="container mx-auto px-4 py-8">
