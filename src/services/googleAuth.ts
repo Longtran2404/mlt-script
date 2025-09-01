@@ -859,6 +859,15 @@ class VLUScriptService {
       const allData = await this.getSheetData(sheetId!, range);
       console.log("Current sheet data rows:", allData.length);
       
+      // Debug: Show sheet structure
+      if (allData.length > 0) {
+        console.log("📋 Sheet Header (row 0):", allData[0]);
+        if (allData.length > 1) {
+          console.log("📄 First data row (row 1):", allData[1]);
+          console.log("📄 Second data row (row 2):", allData[2]);
+        }
+      }
+      
       // Create a copy of the data to update
       const updatedData = [...allData];
       let updatedRowsCount = 0;
@@ -869,14 +878,23 @@ class VLUScriptService {
       script.scenes.forEach((scene, sceneIndex) => {
         console.log(`Processing scene ${sceneIndex + 1}: timestamp="${scene.timestampString}"`);
         
-        // Find row with matching timestamp (column H - Giờ:phút:giây.mili)
+        // Find row with matching timestamp in any column
         let foundMatch = false;
         for (let i = 1; i < updatedData.length; i++) { // Skip header row
           const row = updatedData[i];
-          if (row && row[7]) {
-            const rowTimestamp = row[7].toString().trim();
-            if (rowTimestamp === scene.timestampString) {
-              console.log(`✅ Found matching row ${i} for timestamp ${scene.timestampString}`);
+          if (row) {
+            // Check all columns for timestamp match
+            for (let col = 0; col < row.length; col++) {
+              if (row[col]) {
+                const cellValue = row[col].toString().trim();
+                if (cellValue === scene.timestampString) {
+                  console.log(`✅ Found matching row ${i}, column ${col} for timestamp ${scene.timestampString}`);
+                  foundMatch = true;
+                  break;
+                }
+              }
+            }
+            if (foundMatch) {
               console.log(`   Updating: description="${scene.description}", content="${scene.content}", notes="${scene.notes}"`);
               
               // Update the row according to user's sheet structure:
@@ -893,7 +911,6 @@ class VLUScriptService {
                 row[8] || "", // Timestamp ms - keep original
                 scene.content || row[9] || "", // Lời thoại (J) - use content as fallback
               ];
-              foundMatch = true;
               updatedRowsCount++;
               break;
             }
