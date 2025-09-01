@@ -22,8 +22,12 @@ function App() {
       <Router>
         <div className="App">
           <Routes>
-            {/* Trang chủ không có sidebar */}
-            <Route path="/" element={<NewHome />} />
+            {/* Trang chủ với MainLayout nhưng không có sidebar */}
+            <Route path="/" element={
+              <MainLayout showSidebar={false}>
+                <NewHome />
+              </MainLayout>
+            } />
             
             {/* Các trang có sidebar */}
             <Route path="/dashboard" element={
