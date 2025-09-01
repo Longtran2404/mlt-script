@@ -37,7 +37,6 @@ interface MLTService {
 }
 
 export default function TaoKichBan() {
-  console.log("📝 Rendering TaoKichBan page");
   
   const [formData, setFormData] = useState<ScriptFormData>({
     description: "",

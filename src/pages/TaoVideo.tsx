@@ -27,7 +27,6 @@ interface VideoSettings {
 }
 
 export default function TaoVideo() {
-  console.log("🎬 Rendering TaoVideo page");
   const [videoScript, setVideoScript] = useState("");
   const [videoSettings, setVideoSettings] = useState<VideoSettings>({
     duration: "30",

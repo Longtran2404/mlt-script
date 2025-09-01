@@ -21,7 +21,6 @@ import { PricingCard, PricingPlan } from "../components/ui/pricing-card";
 import { FeatureCard, Feature } from "../components/ui/feature-card";
 
 export default function NewHome() {
-  console.log("🏠 Rendering NewHome page");
   const navigate = useNavigate();
   
   // Hero Stats

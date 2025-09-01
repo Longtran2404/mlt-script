@@ -17,18 +17,12 @@ import Settings from "./pages/Settings";
 import Help from "./pages/Help";
 import OAuth2Callback from "./pages/OAuth2Callback";
 
-function DebugRouter() {
-  const location = useLocation();
-  console.log("🚦 Current path:", location.pathname);
-  return null;
-}
 
 function App() {
   return (
     <ThemeProvider>
       <Router>
         <div className="App">
-          <DebugRouter />
           <Routes>
             {/* Trang chủ với MainLayout nhưng không có sidebar */}
             <Route path="/" element={
