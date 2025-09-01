@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Card,
   CardContent,
@@ -10,7 +10,6 @@ import {
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { Progress } from "../components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -19,18 +18,8 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../components/ui/table";
-import {
   FolderOpen,
   FileText,
-  Video,
-  Play,
   Users,
   Calendar,
   Clock,
@@ -43,41 +32,12 @@ import {
   Filter,
   Search,
   Download,
-  Share2,
-  Settings,
   Plus,
-  Edit,
-  Trash2,
-  Eye,
   MoreHorizontal,
   ArrowUpRight,
-  BarChart3,
-  PieChart,
-  LineChart,
-  Zap,
-  Sparkles,
-  Globe,
-  Smartphone,
-  Monitor,
-  Tablet,
-  Star,
-  Heart,
-  MessageCircle,
-  ThumbsUp,
-  EyeOff,
-  Lock,
-  Unlock,
-  RefreshCw,
-  Save,
-  X,
-  ChevronDown,
-  ChevronUp,
   ChevronLeft,
   ChevronRight,
-  First,
-  Last,
 } from "lucide-react";
-import ConnectionStatus from "../components/ConnectionStatus";
 import GoogleConnectButton from "../components/GoogleConnectButton";
 
 interface SheetData {
@@ -124,21 +84,13 @@ interface ProjectStats {
 }
 
 export default function QuanLyNew() {
-  const [loading, setLoading] = useState(false);
   const [selectedSheet, setSelectedSheet] = useState<SheetData | null>(null);
   const [sheetTabs, setSheetTabs] = useState<any[]>([]);
-  const [selectedTab, setSelectedTab] = useState<string>("");
   const [sheetData, setSheetData] = useState<any[]>([]);
-  const [editingCell, setEditingCell] = useState<{
-    row: number;
-    col: number;
-  } | null>(null);
-  const [editValue, setEditValue] = useState("");
-  const [activeTab, setActiveTab] = useState("overview");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterPriority, setFilterPriority] = useState("all");
-  const [viewMode, setViewMode] = useState<"grid" | "list" | "kanban">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -245,7 +197,6 @@ export default function QuanLyNew() {
 
   // Load sheet data from Google Sheets API
   const loadSheetData = useCallback(async () => {
-    setLoading(true);
     try {
       console.log("🔄 Loading real Google Sheets data...");
       
@@ -283,7 +234,6 @@ export default function QuanLyNew() {
 
       setSelectedSheet(sheetInfo);
       setSheetTabs(sheetInfo.sheets || []);
-      setSelectedTab(sheetInfo.sheets?.[0]?.properties.title || "");
 
       // Load data from first sheet
       if (sheets.length > 0) {
@@ -321,8 +271,6 @@ export default function QuanLyNew() {
       } catch (csvError) {
         console.error("❌ CSV fallback also failed:", csvError);
       }
-    } finally {
-      setLoading(false);
     }
   }, []);
 
@@ -345,7 +293,7 @@ export default function QuanLyNew() {
       review: {
         color: "bg-gradient-to-r from-yellow-500 to-orange-500 text-white",
         text: "Under Review",
-        icon: <Eye className="w-3 h-3" />,
+        icon: <CheckCircle className="w-3 h-3" />,
       },
       completed: {
         color: "bg-gradient-to-r from-green-500 to-emerald-500 text-white",
@@ -725,14 +673,14 @@ export default function QuanLyNew() {
                               </span>
                               <span className="font-medium">{script.progress}%</span>
                             </div>
-                            <Progress value={script.progress} className="h-2">
+                            <div className="w-full bg-gray-200 rounded-full h-2">
                               <div
-                                className={`h-full rounded-full transition-all duration-300 ${getProgressColor(
+                                className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(
                                   script.progress
                                 )}`}
                                 style={{ width: `${script.progress}%` }}
                               />
-                            </Progress>
+                            </div>
                           </div>
                         </div>
 
@@ -826,14 +774,14 @@ export default function QuanLyNew() {
                                   </span>
                                   <span className="font-medium">{script.progress}%</span>
                                 </div>
-                                <Progress value={script.progress} className="h-2 w-32">
+                                <div className="w-32 bg-gray-200 rounded-full h-2">
                                   <div
-                                    className={`h-full rounded-full transition-all duration-300 ${getProgressColor(
+                                    className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(
                                       script.progress
                                     )}`}
                                     style={{ width: `${script.progress}%` }}
                                   />
-                                </Progress>
+                                </div>
                               </div>
                             </div>
 
@@ -858,7 +806,8 @@ export default function QuanLyNew() {
                   onClick={() => setCurrentPage(1)}
                   disabled={currentPage === 1}
                 >
-                  <First className="h-4 w-4" />
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="ml-1">First</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -895,7 +844,8 @@ export default function QuanLyNew() {
                   onClick={() => setCurrentPage(totalPages)}
                   disabled={currentPage === totalPages}
                 >
-                  <Last className="h-4 w-4" />
+                  <span className="mr-1">Last</span>
+                  <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             )}
