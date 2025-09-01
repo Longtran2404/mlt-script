@@ -1,34 +1,46 @@
-# 🚀 MLT Script AI Platform
+# 🎬 MLT Script AI Platform
 
-Nền tảng AI tiên tiến để tạo video và kịch bản chuyên nghiệp, được xây dựng với React, TypeScript, Tailwind CSS và ShadCN UI.
+**Nền tảng AI All-in-One để tạo kịch bản và video chuyên nghiệp** - Single Page Application tích hợp đầy đủ chức năng.
 
-## ✨ Tính năng chính
+🌐 **Live Demo**: [https://mlt-script.vercel.app](https://mlt-script.vercel.app)
+
+## ✨ Tính năng đầy đủ trong 1 trang
 
 ### 🎬 Tạo Video AI
 - Chuyển đổi kịch bản thành video chuyên nghiệp
-- Hỗ trợ nhiều phong cách và thời lượng
-- Giao diện trực quan và dễ sử dụng
+- Form nhập kịch bản với editor thông minh
+- Chọn phong cách: Modern, Classic, Minimal, Creative
+- Chọn nhạc nền: Upbeat, Calm, Dramatic, Corporate
+- Preview và export video chất lượng cao
 
-### ✍️ Tạo Kịch Bản AI
-- Tạo kịch bản chuyên nghiệp với sự hỗ trợ của AI
-- Tối ưu cho mọi loại nội dung
-- Hỗ trợ nhiều tone và phong cách
+### 📝 Tạo Kịch Bản AI  
+- **6 dịch vụ học tập MLT**: Marketing Digital, Khởi Nghiệp, Lập Trình, Quản Lý, Sức Khỏe, Tài Chính
+- **Card flip animations** - hover để xem ví dụ kịch bản
+- **5 loại giọng điệu**: Nam/nữ trẻ, Nam/nữ trưởng thành, Trẻ em
+- **Slider thời lượng**: 30-60s với Veo 2 / Gemini Veo 3 selection
+- **Webhook integration**: Gửi dữ liệu tới n8n endpoint
+- **Session ID tracking**: Theo dõi từng request
 
-### 📊 Quản lý Dự án
-- Dashboard tổng quan với thống kê chi tiết
-- Quản lý tiến độ dự án
-- Phân công và theo dõi thành viên
+### 📊 Script Manager - Google Sheets Integration
+- Kết nối trực tiếp với Google Sheets
+- Import/Export kịch bản tự động
+- Multi-sheet support cho nhiều project
+- Real-time sync và localStorage cache
+- Google OAuth2 authentication
 
-### 📈 Analytics & Báo cáo
-- Phân tích hiệu suất nội dung
-- Thống kê lượt xem, tải xuống, chia sẻ
-- Báo cáo chi tiết theo thời gian
+### 🎯 Dashboard & Analytics
+- Thống kê real-time từ Google Sheets
+- Biểu đồ hiệu suất dự án
+- Quản lý tiến độ và deadline
+- Export báo cáo PDF/Excel
 
-### 🔐 Google OAuth2 Integration
-- Đăng nhập bằng Google Account
-- Tích hợp Google Drive API
-- Tích hợp Google Sheets API
-- Quản lý file và dữ liệu tự động
+### 🎨 Modern UI/UX tất cả trong 1
+- **Responsive design** hoàn hảo trên mọi thiết bị
+- **Dark/Light theme** toggle
+- **Navigation sidebar** với highlight active
+- **Framer Motion animations** mượt mà
+- **Loading states** và error handling
+- **Success/error notifications** thông minh
 
 ## 🛠️ Công nghệ sử dụng
 
@@ -52,26 +64,34 @@ Dự án đã được tích hợp đầy đủ với ShadCN UI, bao gồm:
 - ✅ **Badge** - Badge với nhiều variants
 - ✅ **Utils** - Helper functions (cn, clsx, tailwind-merge)
 
-## 📁 Cấu trúc dự án
+## 📁 Kiến trúc Single Page App
 
 ```
 src/
-├── components/          # UI components (ShadCN + custom)
-│   ├── ui/             # ShadCN UI components
-│   ├── layout/         # Layout components
-│   └── ...             # Custom components
-├── pages/              # Các trang chính
-│   ├── Home.tsx        # Trang chủ
-│   ├── Dashboard.tsx   # Dashboard tổng quan
-│   ├── TaoVideo.tsx    # Tạo video AI
-│   ├── TaoKichBan.tsx  # Tạo kịch bản AI
-│   └── ...             # Các trang khác
-├── services/           # API services
-│   ├── googleOAuth.ts  # Google OAuth2 service
-│   └── ...             # Các service khác
-├── contexts/           # React Context
-├── lib/                # Utilities & hooks
-└── types/              # TypeScript definitions
+├── components/          # All-in-One UI Components
+│   ├── ui/             # ShadCN UI components (Button, Card, Input...)
+│   ├── layout/         # MainLayout, Header, Sidebar
+│   ├── ServiceCardDemo.tsx    # Demo cards
+│   ├── ChatBot.tsx            # AI Chatbot widget
+│   └── StarField.tsx          # Background effects
+├── pages/              # Main Application Features
+│   ├── NewHome.tsx            # Landing page với hero section
+│   ├── TaoVideo.tsx           # Video AI creation tool
+│   ├── TaoKichBan.tsx         # Script AI generation
+│   ├── ScriptManager.tsx      # Google Sheets integration
+│   ├── EnhancedDashboard.tsx  # Analytics & stats
+│   └── OAuth2Callback.tsx     # Google auth handler
+├── services/           # Backend Integration
+│   ├── googleAuth.ts          # Google OAuth2 + Sheets API
+│   ├── googleSheets.ts        # Sheet operations
+│   └── googleOAuth.ts         # Authentication flow  
+├── contexts/           # Global State
+│   └── ThemeContext.tsx       # Dark/Light theme
+├── types/              # TypeScript Definitions
+│   ├── script.types.ts        # Script & scene interfaces
+│   └── sheets.types.ts        # Google Sheets types
+└── lib/                # Utilities
+    └── utils.ts               # Helper functions
 ```
 
 ## 🚀 Cài đặt và chạy
@@ -142,16 +162,23 @@ REACT_APP_OAUTH2_REDIRECT_URI=https://your-domain.vercel.app/oauth2/callback
 - **Desktop**: Giao diện đầy đủ cho desktop
 - **Navigation**: Mobile menu với hamburger
 
-## 🎯 Các trang đã được tạo
+## 🎯 Chức năng All-in-One
 
-1. **Home** - Landing page với hero section
-2. **Dashboard** - Analytics và thống kê
-3. **TaoVideo** - Tạo video AI
-4. **TaoKichBan** - Tạo kịch bản AI
-5. **ProjectManagement** - Quản lý dự án
-6. **Analytics** - Phân tích dữ liệu
-7. **Settings** - Cài đặt hệ thống
-8. **OAuth2Callback** - Google OAuth2 callback
+**Tất cả trong 1 trang duy nhất** - không cần chuyển trang, mọi thứ được tích hợp mượt mà:
+
+✅ **Landing Page** - Hero section với CTA buttons  
+✅ **Video AI Creation** - Form tạo video với preview  
+✅ **Script AI Generation** - 6 service cards với flip animations  
+✅ **Google Sheets Manager** - Import/export kịch bản real-time  
+✅ **Dashboard Analytics** - Charts và statistics  
+✅ **Settings Panel** - Theme toggle, user preferences  
+✅ **OAuth Integration** - Seamless Google login flow  
+
+**🎨 Single Page Experience:**
+- Sidebar navigation với smooth transitions
+- Modal dialogs thay vì page redirects  
+- Loading states cho mọi action
+- Real-time updates không cần refresh
 
 ## 🤝 Đóng góp
 
@@ -173,7 +200,16 @@ Dự án này được phát hành dưới MIT License.
 
 ## 🚀 Live Demo
 
-**Production URL**: [https://mlt-script.vercel.app](https://mlt-script.vercel.app)
+**🌟 Production URL**: [https://mlt-script.vercel.app](https://mlt-script.vercel.app)
+
+**🎯 Direct Features:**
+- 🏠 **Main App**: https://mlt-script.vercel.app/ 
+- 🎬 **Video Creation**: Click "Tạo Video AI" button
+- 📝 **Script Generation**: Click "Tạo Kịch Bản AI" button  
+- 📊 **Script Manager**: Click "Quản Lý Kịch Bản" in sidebar
+- 📈 **Dashboard**: Click "Dashboard" in navigation
+
+> **Note**: Tất cả tính năng trong cùng 1 URL - Single Page Application!
 
 ---
 
