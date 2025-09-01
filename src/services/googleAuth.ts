@@ -376,7 +376,7 @@ class VLUScriptService {
       });
 
       const sheets = response.result.sheets || [];
-      const sheetList = sheets.map(sheet => ({
+      const sheetList = sheets.map((sheet: any) => ({
         id: sheet.properties.sheetId,
         title: sheet.properties.title
       }));
