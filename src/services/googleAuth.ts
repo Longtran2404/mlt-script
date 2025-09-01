@@ -842,33 +842,57 @@ class VLUScriptService {
         sheetId = foundSheetId;
       }
 
-      // Find rows with matching script ID and update them
-      const allData = await this.getSheetData(sheetId!);
-      const updatedData = allData.map((row) => {
-        if (row.length > 7 && row[7] === script.id) {
-          // Update this row with new script data
-          const sceneForThisRow = script.scenes.find(
-            (s) => s.timestampString === row[0]
-          );
-          if (sceneForThisRow) {
-            return [
-              sceneForThisRow.timestampString,
-              sceneForThisRow.content,
-              sceneForThisRow.description,
-              sceneForThisRow.speaker,
-              sceneForThisRow.action,
-              sceneForThisRow.notes,
-              sceneForThisRow.sceneNumber,
-              script.id,
-              script.title,
-              script.status,
+      // Determine if this script came from a specific sheet based on its title
+      let targetSheetName = "";
+      if (script.title.startsWith("[") && script.title.includes("]")) {
+        // Extract sheet name from title like "[SheetName] Script Title"
+        const match = script.title.match(/^\[([^\]]+)\]/);
+        if (match) {
+          targetSheetName = match[1];
+          console.log("Detected target sheet from script title:", targetSheetName);
+        }
+      }
+
+      // Get current data and update matching rows
+      const range = targetSheetName ? `${targetSheetName}!A:Z` : "A:Z";
+      console.log("Reading data from range:", range);
+      const allData = await this.getSheetData(sheetId!, range);
+      console.log("Current sheet data rows:", allData.length);
+      
+      // Create a copy of the data to update
+      const updatedData = [...allData];
+      
+      // Update each scene in the script based on timestamp matching
+      script.scenes.forEach((scene) => {
+        // Find row with matching timestamp (column H - Giờ:phút:giây.mili)
+        for (let i = 1; i < updatedData.length; i++) { // Skip header row
+          const row = updatedData[i];
+          if (row && row[7] && row[7].toString().trim() === scene.timestampString) {
+            console.log(`Updating row ${i} with timestamp ${scene.timestampString}`);
+            
+            // Update the row according to user's sheet structure:
+            // STT(A) | Thời lượng(B) | Phân cảnh(C) | Text trên video(D) | Ghi chú(E) | VEO3 Prompt(F) | Ngày(G) | Giờ:phút:giây(H) | Timestamp ms(I) | Lời thoại(J)
+            updatedData[i] = [
+              row[0] || "", // STT - keep original
+              row[1] || "", // Thời lượng - keep original  
+              scene.description || row[2] || "", // Phân cảnh (C)
+              scene.content || row[3] || "", // Text trên video (D)
+              scene.notes || row[4] || "", // Ghi chú (E)
+              scene.action || row[5] || "", // VEO3 Prompt (F)
+              row[6] || "", // Ngày - keep original
+              scene.timestampString || row[7] || "", // Giờ:phút:giây (H) - keep original
+              row[8] || "", // Timestamp ms - keep original
+              scene.content || row[9] || "", // Lời thoại (J) - use content as fallback
             ];
+            break;
           }
         }
-        return row;
       });
 
-      return await this.updateSheetData(sheetId!, "A:Z", updatedData);
+      // Use the same range for updating as we used for reading
+      console.log(`Updating sheet data with range: ${range}`);
+      
+      return await this.updateSheetData(sheetId!, range, updatedData);
     } catch (error) {
       console.error("Error updating script:", error);
       return false;
