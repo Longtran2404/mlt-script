@@ -1,89 +1,398 @@
 ---
-description: Template và hướng dẫn tạo Cursor Rules Format cho dự án MLT
-globs: .cursor/rules/**/*.mdc
+description: Claude Code coding standards cho MLT Script AI Platform
+globs: src/**/*.tsx, src/**/*.ts, *.json, *.md
 alwaysApply: true
 ---
 
-# Cursor Rules Format
-
-## Template Structure for Rules Files
-
-```mdc
----
-description: `Explicit concise description to ensure the agent knows when to apply the rule` OR blank
-globs: .cursor/rules/**/*.mdc OR blank
-alwaysApply: {true or false}
----
-
-# Rule Title
+# 🎯 Claude Code Universal Standards
 
 ## Context
 
-- When to apply this rule
-- Prerequisites or conditions
-- Why the rule was added or is needed
+- Universal coding standards based on official Anthropic Claude Code documentation
+- Designed for any project type (React, Vue, Node.js, Python, etc.)
+- Follows Claude Code's professional coding patterns and conventions
+- Ensures consistent, maintainable, and production-ready code across all projects
 
-## Critical Rules
+## 🎯 Claude Code Core Principles
 
-- Concise, bulleted list of actionable rules the agent MUST follow
+### **📝 Code Documentation & Comments**
 
-## Examples
+- **Self-documenting code** - Write clear, descriptive variable and function names
+- **Minimal comments** - Only comment when logic is complex or non-obvious
+- **JSDoc/TSDoc** - Use proper documentation for public APIs and interfaces
+- **README documentation** - Maintain comprehensive project documentation
+- **Inline documentation** - Document complex algorithms and business logic
+
+### **🔧 Language-Agnostic Standards**
+
+- **Type safety** - Use TypeScript, Python type hints, or similar type systems
+- **Consistent naming** - Follow language-specific conventions (camelCase, snake_case, etc.)
+- **Error handling** - Implement comprehensive error handling with try/catch or similar
+- **Input validation** - Validate all user inputs and external data
+- **Code organization** - Use proper file structure and module organization
+
+### **⚛️ Frontend Standards (React/Vue/Angular)**
+
+- **Component architecture** - Use functional components with hooks (React) or composition API (Vue)
+- **State management** - Implement proper state management patterns
+- **Performance optimization** - Use memoization, lazy loading, and code splitting
+- **Accessibility** - Follow WCAG guidelines and implement ARIA attributes
+- **Responsive design** - Mobile-first approach with proper breakpoints
+
+### **🔗 Backend Standards (Node.js/Python/Java)**
+
+- **API design** - Follow RESTful conventions or GraphQL best practices
+- **Database patterns** - Use proper ORM patterns and connection management
+- **Security** - Implement authentication, authorization, and input sanitization
+- **Logging** - Use structured logging with appropriate log levels
+- **Testing** - Write unit tests, integration tests, and API tests
+
+### **📊 Data Management**
+
+- **Data validation** - Use schemas (Zod, Joi, Pydantic) for runtime validation
+- **Caching strategies** - Implement appropriate caching (Redis, in-memory, CDN)
+- **Database design** - Follow normalization principles and proper indexing
+- **API responses** - Use consistent response formats and status codes
+- **Error responses** - Provide meaningful error messages and codes
+
+### **🚀 Performance & Optimization**
+
+- **Code splitting** - Implement lazy loading for routes and components
+- **Bundle optimization** - Minimize bundle size and optimize imports
+- **Database queries** - Optimize queries and use proper indexing
+- **Caching** - Implement appropriate caching strategies
+- **Monitoring** - Use performance monitoring and error tracking
+
+## 📋 Universal Code Examples
 
 <example>
-{valid rule application}
+  // ✅ Claude Code Standard: Clean, typed, and maintainable
+  interface User {
+    id: string;
+    name: string;
+    email: string;
+    createdAt: Date;
+  }
+
+interface CreateUserRequest {
+name: string;
+email: string;
+}
+
+interface ApiResponse<T> {
+success: boolean;
+data?: T;
+error?: string;
+}
+
+class UserService {
+async createUser(request: CreateUserRequest): Promise<ApiResponse<User>> {
+try {
+// Validate input
+if (!request.name || !request.email) {
+return {
+success: false,
+error: 'Name and email are required'
+};
+}
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(request.email)) {
+          return {
+            success: false,
+            error: 'Invalid email format'
+          };
+        }
+
+        // Create user logic
+        const user: User = {
+          id: generateId(),
+          name: request.name,
+          email: request.email,
+          createdAt: new Date()
+        };
+
+        // Save to database (simplified)
+        await this.saveUser(user);
+
+        return {
+          success: true,
+          data: user
+        };
+      } catch (error) {
+        console.error('Failed to create user:', error);
+        return {
+          success: false,
+          error: 'Internal server error'
+        };
+      }
+    }
+
+    private async saveUser(user: User): Promise<void> {
+      // Database save implementation
+    }
+
+}
+
+// React Component Example
+interface UserFormProps {
+onSubmit: (user: CreateUserRequest) => Promise<void>;
+isLoading?: boolean;
+}
+
+export default function UserForm({ onSubmit, isLoading = false }: UserFormProps) {
+const [formData, setFormData] = useState<CreateUserRequest>({
+name: '',
+email: ''
+});
+const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const handleSubmit = async (event: React.FormEvent) => {
+      event.preventDefault();
+      setErrors({});
+
+      // Client-side validation
+      const newErrors: Record<string, string> = {};
+      if (!formData.name.trim()) {
+        newErrors.name = 'Name is required';
+      }
+      if (!formData.email.trim()) {
+        newErrors.email = 'Email is required';
+      }
+
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
+        return;
+      }
+
+      try {
+        await onSubmit(formData);
+      } catch (error) {
+        console.error('Form submission failed:', error);
+      }
+    };
+
+    const handleInputChange = (field: keyof CreateUserRequest) => (
+      event: React.ChangeEvent<HTMLInputElement>
+    ) => {
+      setFormData(prev => ({
+        ...prev,
+        [field]: event.target.value
+      }));
+      // Clear error when user starts typing
+      if (errors[field]) {
+        setErrors(prev => ({ ...prev, [field]: '' }));
+      }
+    };
+
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="name" className="block text-sm font-medium">
+            Name
+          </label>
+          <input
+            id="name"
+            type="text"
+            value={formData.name}
+            onChange={handleInputChange('name')}
+            className={`mt-1 block w-full rounded-md border ${
+              errors.name ? 'border-red-500' : 'border-gray-300'
+            }`}
+            disabled={isLoading}
+          />
+          {errors.name && (
+            <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium">
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            value={formData.email}
+            onChange={handleInputChange('email')}
+            className={`mt-1 block w-full rounded-md border ${
+              errors.email ? 'border-red-500' : 'border-gray-300'
+            }`}
+            disabled={isLoading}
+          />
+          {errors.email && (
+            <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+          )}
+        </div>
+
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50"
+        >
+          {isLoading ? 'Creating...' : 'Create User'}
+        </button>
+      </form>
+    );
+
+}
 </example>
 
 <example type="invalid">
-{invalid rule application}
-<example>
-```
+  // ❌ Anti-patterns: Poor typing, no error handling, unclear naming
+  function createUser(data) {
+    const user = {
+      id: Math.random().toString(),
+      name: data.name,
+      email: data.email,
+      date: new Date()
+    };
+    
+    fetch('/api/users', {
+      method: 'POST',
+      body: JSON.stringify(user)
+    }).then(res => {
+      console.log('User created:', res);
+    });
+  }
 
-### Organizational Folders (Create if non existent)
+function UserForm(props) {
+const [data, setData] = useState({});
+const [loading, setLoading] = useState(false);
 
-All rules files will be under an organizational folder:
+    const submit = () => {
+      setLoading(true);
+      createUser(data);
+      setLoading(false);
+    };
 
-- .cursor/rules/always - these will be rules that are ALWAYS applied to every chat and cmd/ctrl-k context
-- .cursor/rules/auto-attached - these will be rules that applied when file pattern matched.
-- .cursor/rules/agent-requested - the agent will see this description and decide to read the full rule if it wants
-- .cursor/rules/manual - this rule needs to be mentioned to be included.
+    return (
+      <div>
+        <input
+          value={data.name || ''}
+          onChange={e => setData({...data, name: e.target.value})}
+        />
+        <input
+          value={data.email || ''}
+          onChange={e => setData({...data, email: e.target.value})}
+        />
+        <button onClick={submit} disabled={loading}>
+          {loading ? 'Loading...' : 'Save'}
+        </button>
+      </div>
+    );
 
-## Glob Pattern Examples
+}
+</example>
 
-Common glob patterns for different rule types:
+## 🛠️ Universal Development Workflow
 
-- Core standards: .cursor/rules/\*.mdc
-- Language rules: _.cs, _.cpp
-- Testing standards: _.test.ts, _.test.js
-- React components: src/components/\*_/_.tsx
-- Documentation: docs/\*_/_.md, \*.md
-- Configuration files: \*.config.js
-- Build artifacts: dist/\*_/_
-- Multiple extensions: _.js, _.ts, \*.tsx
-- Multiple patterns: dist/**/_._, docs/**/*.md, *test*.*
+### **1. Project Setup**
 
-## Critical Rules
+- Initialize with appropriate language/framework
+- Configure linting and formatting tools
+- Set up testing framework
+- Configure build tools and CI/CD
+- Set up environment management
 
-- Rule files will be located and named ALWAYS as: `.cursor/rules/{organizational-folder}/rule-name-{auto|agent|manual|always}.mdc`
-- FrontMatter Rules Types:
-  - The front matter section must always start the file and include all 3 fields, even if the field value will be blank - the types are:
-    - Manual Rule: IF a Manual rule is requested - description and globs MUST be blank and alwaysApply: false and filename ends with -manual.mdc.
-    - Auto Rule: IF a rule is requested that should apply always to certain glob patterns (example all typescript files or all markdown files) - description must be blank, and alwaysApply: false and filename ends with -auto.mdc.
-    - Always Rule: Global Rule applies to every chat and cmd/ctrl-k - description and globs blank, and alwaysApply: true and filename ends with -always.mdc.
-    - Agent Select Rule: The rule does not need to be loaded into every chat thread, it serves a specific purpose. The agent can see the descriptions, and choose to load the full rule in to context on its own - description is critical, globs blank, and alwaysApply:false and filename ends with -agent.mdc
-- For the Rule Context and Bullets - do not repeat yourself and do not be overly explanatory
-- When a rule will only be used sometimes (useAlways: false) it is CRITICAL that the description describes when the AI will load the full rule into its context
-- Use Concise Markdown Tailored to Agent Context Window usage
-- Always indent content within XML Example section with 2 spaces
-- Emojis and Mermaid diagrams are allowed and encouraged if it is not redundant and better explains the rule for the AI comprehension.
-- TRY to keep the total rule line count under 50 lines, better under 25 lines
-- Always include a valid and invalid example
-- NEVER use quotes around glob patterns, NEVER group glob extensions with `{}`
-- If the request for a rule or a future behavior change includes context of a mistake is made, this would be great to use in the example for the rule
-- After rule is created or updated, Respond with the following:
-  - AutoRuleGen Success: path/rule-name.mdc
-  - Rule Type: {Rule Type}
-  - Short summary of what the rule will do
-- **SDK & MCP Integration**: Luôn sử dụng SDK có sẵn và gọi MCP khi cần thiết để tối ưu hóa workflow
-- **Todo List Creation**: Luôn tạo todo list chi tiết để theo dõi và thực hiện các task một cách có hệ thống
-- **Build & Error Checking**: Luôn build và kiểm tra lỗi trước khi start/dev, sửa lỗi đến khi hết mới chạy
-- **Port Management**: Đảm bảo cổng 3000 sẵn sàng, kill tất cả process trên cổng 3000 nếu cần thiết
+### **2. Development Process**
+
+- Write tests first (TDD approach)
+- Implement features with proper typing
+- Review code for performance and security
+- Document complex logic and APIs
+- Follow git workflow best practices
+
+### **3. Code Review Standards**
+
+- Check for type errors and linting issues
+- Verify code organization and structure
+- Review error handling and edge cases
+- Assess performance impact
+- Validate security considerations
+
+### **4. Deployment Pipeline**
+
+- Run type checking and linting
+- Execute test suite
+- Build and optimize project
+- Deploy with proper environment variables
+- Monitor deployment and performance
+
+## 🔧 Universal Tools & Integrations
+
+### **Essential Tools**
+
+- **Type checking** - TypeScript, mypy, ESLint, etc.
+- **Code formatting** - Prettier, Black, gofmt, etc.
+- **Testing framework** - Jest, pytest, JUnit, etc.
+- **Version control** - Git with proper branching strategy
+- **CI/CD** - GitHub Actions, GitLab CI, Jenkins, etc.
+
+### **Claude Code Specific Tools**
+
+- **TodoWrite tool** - Use for multi-step tasks and complex implementations
+- **MCP integration** - Model Context Protocol for external tool integration
+- **Code generation** - Leverage Claude's code generation capabilities
+- **Refactoring assistance** - Use Claude for code optimization and restructuring
+
+### **Recommended Libraries**
+
+- **Validation** - Zod, Joi, Pydantic, etc.
+- **HTTP clients** - Axios, requests, fetch, etc.
+- **Database ORMs** - Prisma, SQLAlchemy, Hibernate, etc.
+- **State management** - Redux, Zustand, Pinia, etc.
+- **UI libraries** - React, Vue, Angular, etc.
+
+## 🚀 Universal Performance Standards
+
+### **Frontend Performance**
+
+- **Bundle size** - Keep main bundle under 250KB
+- **Core Web Vitals** - LCP < 2.5s, FID < 100ms, CLS < 0.1
+- **Code splitting** - Implement lazy loading
+- **Image optimization** - Use next-gen formats and lazy loading
+
+### **Backend Performance**
+
+- **Response time** - API responses under 200ms
+- **Database queries** - Optimize with proper indexing
+- **Caching** - Implement appropriate caching strategies
+- **Monitoring** - Use APM tools for performance tracking
+
+### **Security Standards**
+
+- **Input validation** - Validate all inputs
+- **Authentication** - Implement secure auth systems
+- **Authorization** - Use proper role-based access control
+- **Data encryption** - Encrypt sensitive data
+- **HTTPS** - Use SSL/TLS for all communications
+
+## 📚 Universal Documentation Standards
+
+### **Code Documentation**
+
+- **API documentation** - Use OpenAPI/Swagger or similar
+- **Inline comments** - Document complex logic
+- **README files** - Comprehensive project setup guides
+- **Architecture docs** - System design and architecture
+
+### **Git Practices**
+
+- **Conventional commits** - Follow commit message conventions
+- **Feature branches** - Use proper branching strategy
+- **Pull requests** - Require code reviews
+- **Automated testing** - Run tests on every PR
+
+### **Project Structure**
+
+- **Clear organization** - Logical file and folder structure
+- **Separation of concerns** - Separate business logic from presentation
+- **Configuration management** - Use environment variables
+- **Dependency management** - Keep dependencies updated and secure
+
+- Always run `npm run build` before deployment
+- Fix ALL TypeScript errors and warnings
+- Use proper git commit messages with emojis
+- Deploy via `git push` for automatic Vercel deployment
