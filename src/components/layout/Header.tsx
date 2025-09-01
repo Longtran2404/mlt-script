@@ -3,13 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Sun, Moon, User, Settings, LogOut, ChevronDown } from "lucide-react";
 import { useTheme } from "../../contexts/ThemeContext";
 import { Button } from "../ui/button";
+import { Link, useLocation } from "react-router-dom";
 
-interface HeaderProps {
-  onPageChange: (page: string) => void;
-  currentPage: string;
-}
-
-export default function Header({ onPageChange, currentPage }: HeaderProps) {
+export default function Header() {
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isServicesOpen, setIsServicesOpen] = useState(false);
@@ -25,19 +22,18 @@ export default function Header({ onPageChange, currentPage }: HeaderProps) {
   }, []);
 
   const navigation = [
-    { name: "Trang chủ", href: "home", current: currentPage === "home" },
-    { name: "Dashboard", href: "dashboard", current: currentPage === "dashboard" },
+    { name: "Trang chủ", href: "/", current: location.pathname === "/" },
+    { name: "Dashboard", href: "/dashboard", current: location.pathname === "/dashboard" },
   ];
 
   const services = [
-    { name: "Tạo Video AI", href: "tao-video", icon: "🎬" },
-    { name: "Quản Lý Kịch Bản", href: "script-manager", icon: "✍️" },
-    { name: "Quản Lý Dự Án", href: "project-management", icon: "📋" },
-    { name: "Analytics", href: "analytics", icon: "📊" },
+    { name: "Tạo Video AI", href: "/tao-video", icon: "🎬" },
+    { name: "Quản Lý Kịch Bản", href: "/quan-ly-kich-ban", icon: "✍️" },
+    { name: "Quản Lý Dự Án", href: "/quan-ly-du-an", icon: "📋" },
+    { name: "Analytics", href: "/analytics", icon: "📊" },
   ];
 
-  const handleNavigation = (page: string) => {
-    onPageChange(page);
+  const handleMobileMenuClose = () => {
     setIsOpen(false);
     setIsServicesOpen(false);
   };
@@ -53,12 +49,12 @@ export default function Header({ onPageChange, currentPage }: HeaderProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
-          <motion.div
-            className="flex items-center space-x-3 cursor-pointer group"
-            onClick={() => handleNavigation("home")}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
+          <Link to="/">
+            <motion.div
+              className="flex items-center space-x-3 cursor-pointer group"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
             <div className="relative">
               <div className="w-12 h-12 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
                 <span className="text-white font-bold text-xl">M</span>
@@ -73,24 +69,25 @@ export default function Header({ onPageChange, currentPage }: HeaderProps) {
                 Professional AI Platform
               </div>
             </div>
-          </motion.div>
+            </motion.div>
+          </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-1">
             {navigation.map((item) => (
-              <motion.button
-                key={item.name}
-                onClick={() => handleNavigation(item.href)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                  item.current
-                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                }`}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                {item.name}
-              </motion.button>
+              <Link key={item.name} to={item.href}>
+                <motion.div
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer ${
+                    item.current
+                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  }`}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  {item.name}
+                </motion.div>
+              </Link>
             ))}
 
             {/* Services Dropdown */}
@@ -114,19 +111,19 @@ export default function Header({ onPageChange, currentPage }: HeaderProps) {
                     className="absolute top-full mt-2 left-0 w-64 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200/20 dark:border-gray-700/20 p-2 backdrop-blur-xl"
                   >
                     {services.map((service) => (
-                      <motion.button
-                        key={service.name}
-                        onClick={() => handleNavigation(service.href)}
-                        className="flex items-center w-full px-4 py-3 text-left rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 group"
-                        whileHover={{ x: 4 }}
-                      >
-                        <span className="text-xl mr-3 group-hover:scale-110 transition-transform duration-200">
-                          {service.icon}
-                        </span>
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                          {service.name}
-                        </span>
-                      </motion.button>
+                      <Link key={service.name} to={service.href} onClick={() => setIsServicesOpen(false)}>
+                        <motion.div
+                          className="flex items-center w-full px-4 py-3 text-left rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 group cursor-pointer"
+                          whileHover={{ x: 4 }}
+                        >
+                          <span className="text-xl mr-3 group-hover:scale-110 transition-transform duration-200">
+                            {service.icon}
+                          </span>
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {service.name}
+                          </span>
+                        </motion.div>
+                      </Link>
                     ))}
                   </motion.div>
                 )}
@@ -138,12 +135,13 @@ export default function Header({ onPageChange, currentPage }: HeaderProps) {
           <div className="flex items-center space-x-3">
             {/* CTA Button */}
             <div className="hidden sm:block">
-              <Button
-                onClick={() => handleNavigation("tao-video")}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium px-6 py-2.5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                Tạo Video AI
-              </Button>
+              <Link to="/tao-video">
+                <Button
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium px-6 py-2.5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  Tạo Video AI
+                </Button>
+              </Link>
             </div>
 
             {/* Theme Toggle */}
@@ -179,26 +177,22 @@ export default function Header({ onPageChange, currentPage }: HeaderProps) {
                     exit={{ opacity: 0, y: -10, scale: 0.95 }}
                     className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200/20 dark:border-gray-700/20 p-2 backdrop-blur-xl"
                   >
-                    <button
-                      onClick={() => {
-                        handleNavigation("settings");
-                        setIsProfileOpen(false);
-                      }}
+                    <Link
+                      to="/cai-dat"
+                      onClick={() => setIsProfileOpen(false)}
                       className="flex items-center w-full px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors duration-200"
                     >
                       <Settings className="w-4 h-4 mr-3" />
                       Cài đặt
-                    </button>
-                    <button
-                      onClick={() => {
-                        handleNavigation("quan-ly");
-                        setIsProfileOpen(false);
-                      }}
+                    </Link>
+                    <Link
+                      to="/tro-giup"
+                      onClick={() => setIsProfileOpen(false)}
                       className="flex items-center w-full px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors duration-200"
                     >
                       <User className="w-4 h-4 mr-3" />
-                      Quản lý
-                    </button>
+                      Trợ giúp
+                    </Link>
                     <hr className="my-2 border-gray-200 dark:border-gray-700" />
                     <button className="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors duration-200">
                       <LogOut className="w-4 h-4 mr-3" />
@@ -235,19 +229,19 @@ export default function Header({ onPageChange, currentPage }: HeaderProps) {
           >
             <div className="px-4 py-6 space-y-2">
               {navigation.map((item) => (
-                <motion.button
-                  key={item.name}
-                  onClick={() => handleNavigation(item.href)}
-                  className={`w-full text-left px-4 py-3 rounded-xl text-base font-medium transition-all duration-200 ${
-                    item.current
-                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                  }`}
-                  whileHover={{ x: 4 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  {item.name}
-                </motion.button>
+                <Link key={item.name} to={item.href} onClick={handleMobileMenuClose}>
+                  <motion.div
+                    className={`w-full text-left px-4 py-3 rounded-xl text-base font-medium transition-all duration-200 cursor-pointer ${
+                      item.current
+                        ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    }`}
+                    whileHover={{ x: 4 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {item.name}
+                  </motion.div>
+                </Link>
               ))}
               
               <div className="pt-2 pb-2">
@@ -255,16 +249,16 @@ export default function Header({ onPageChange, currentPage }: HeaderProps) {
                   Dịch vụ
                 </div>
                 {services.map((service) => (
-                  <motion.button
-                    key={service.name}
-                    onClick={() => handleNavigation(service.href)}
-                    className="flex items-center w-full px-4 py-3 text-left rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
-                    whileHover={{ x: 4 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <span className="text-lg mr-3">{service.icon}</span>
-                    <span className="text-base font-medium">{service.name}</span>
-                  </motion.button>
+                  <Link key={service.name} to={service.href} onClick={handleMobileMenuClose}>
+                    <motion.div
+                      className="flex items-center w-full px-4 py-3 text-left rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 cursor-pointer"
+                      whileHover={{ x: 4 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <span className="text-lg mr-3">{service.icon}</span>
+                      <span className="text-base font-medium">{service.name}</span>
+                    </motion.div>
+                  </Link>
                 ))}
               </div>
             </div>

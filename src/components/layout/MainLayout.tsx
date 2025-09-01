@@ -1,5 +1,6 @@
 import React, { ReactNode } from "react";
 import { motion } from "framer-motion";
+import { useLocation } from "react-router-dom";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 import Footer from "../Footer";
@@ -8,18 +9,15 @@ import StarField from "../StarField";
 
 interface MainLayoutProps {
   children: ReactNode;
-  currentPage: string;
-  onPageChange: (page: string) => void;
   showSidebar?: boolean;
 }
 
 export default function MainLayout({
   children,
-  currentPage,
-  onPageChange,
   showSidebar = true,
 }: MainLayoutProps) {
-  const isHomePage = currentPage === "home";
+  const location = useLocation();
+  const isHomePage = location.pathname === "/";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -34,13 +32,13 @@ export default function MainLayout({
       </div>
 
       {/* Header */}
-      <Header onPageChange={onPageChange} currentPage={currentPage} />
+      <Header />
 
       {/* Main Content */}
       <div className="flex">
         {/* Sidebar */}
         {showSidebar && !isHomePage && (
-          <Sidebar onPageChange={onPageChange} currentPage={currentPage} />
+          <Sidebar />
         )}
 
         {/* Content Area */}

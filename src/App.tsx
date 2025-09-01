@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import MainLayout from "./components/layout/MainLayout";
 import NewHome from "./pages/NewHome";
@@ -17,79 +18,83 @@ import Help from "./pages/Help";
 import OAuth2Callback from "./pages/OAuth2Callback";
 
 function App() {
-  const [currentPage, setCurrentPage] = useState("home");
-
-  const renderPage = () => {
-    switch (currentPage) {
-      case "service-demo":
-        return <ServiceCardDemo />;
-      case "oauth2-callback":
-        return <OAuth2Callback onPageChange={setCurrentPage} />;
-      case "dashboard":
-        return (
-          <div className="container mx-auto px-4 py-8">
-            <EnhancedDashboard />
-          </div>
-        );
-      case "tao-video":
-        return (
-          <div className="container mx-auto px-4 py-8">
-            <TaoVideo />
-          </div>
-        );
-      case "tao-kich-ban":
-      case "script-manager":
-        return (
-          <div className="container mx-auto px-4 py-8">
-            <ScriptManager />
-          </div>
-        );
-      case "quan-ly":
-        return (
-          <div className="container mx-auto px-4 py-8">
-            <QuanLy />
-          </div>
-        );
-      case "project-management":
-        return (
-          <div className="container mx-auto px-4 py-8">
-            <ProjectManagement />
-          </div>
-        );
-      case "analytics":
-        return (
-          <div className="container mx-auto px-4 py-8">
-            <Analytics />
-          </div>
-        );
-      case "settings":
-        return (
-          <div className="container mx-auto px-4 py-8">
-            <Settings />
-          </div>
-        );
-      case "help":
-        return (
-          <div className="container mx-auto px-4 py-8">
-            <Help />
-          </div>
-        );
-      default:
-        return <NewHome onPageChange={setCurrentPage} />;
-    }
-  };
-
   return (
     <ThemeProvider>
-      <div className="App">
-        <MainLayout
-          currentPage={currentPage}
-          onPageChange={setCurrentPage}
-          showSidebar={true}
-        >
-          {renderPage()}
-        </MainLayout>
-      </div>
+      <Router>
+        <div className="App">
+          <Routes>
+            {/* Trang chủ không có sidebar */}
+            <Route path="/" element={<NewHome />} />
+            
+            {/* Các trang có sidebar */}
+            <Route path="/dashboard" element={
+              <MainLayout showSidebar={true}>
+                <div className="container mx-auto px-4 py-8">
+                  <EnhancedDashboard />
+                </div>
+              </MainLayout>
+            } />
+            
+            <Route path="/tao-video" element={
+              <MainLayout showSidebar={true}>
+                <div className="container mx-auto px-4 py-8">
+                  <TaoVideo />
+                </div>
+              </MainLayout>
+            } />
+            
+            <Route path="/quan-ly-kich-ban" element={
+              <MainLayout showSidebar={true}>
+                <div className="container mx-auto px-4 py-8">
+                  <ScriptManager />
+                </div>
+              </MainLayout>
+            } />
+            
+            <Route path="/quan-ly-du-an" element={
+              <MainLayout showSidebar={true}>
+                <div className="container mx-auto px-4 py-8">
+                  <ProjectManagement />
+                </div>
+              </MainLayout>
+            } />
+            
+            <Route path="/analytics" element={
+              <MainLayout showSidebar={true}>
+                <div className="container mx-auto px-4 py-8">
+                  <Analytics />
+                </div>
+              </MainLayout>
+            } />
+            
+            <Route path="/cai-dat" element={
+              <MainLayout showSidebar={true}>
+                <div className="container mx-auto px-4 py-8">
+                  <Settings />
+                </div>
+              </MainLayout>
+            } />
+            
+            <Route path="/tro-giup" element={
+              <MainLayout showSidebar={true}>
+                <div className="container mx-auto px-4 py-8">
+                  <Help />
+                </div>
+              </MainLayout>
+            } />
+            
+            {/* Special routes */}
+            <Route path="/oauth2/callback" element={<OAuth2Callback />} />
+            <Route path="/service-demo" element={
+              <MainLayout showSidebar={true}>
+                <div className="container mx-auto px-4 py-8">
+                  <ServiceCardDemo />
+                </div>
+              </MainLayout>
+            } />
+          </Routes>
+        </div>
+      </Router>
     </ThemeProvider>
   );
 }

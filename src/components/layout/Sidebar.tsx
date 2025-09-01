@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Link, useLocation } from "react-router-dom";
 import {
   Home,
   Video,
@@ -12,64 +13,60 @@ import {
   ChevronRight,
 } from "lucide-react";
 
-interface SidebarProps {
-  onPageChange: (page: string) => void;
-  currentPage: string;
-}
-
-export default function Sidebar({ onPageChange, currentPage }: SidebarProps) {
+export default function Sidebar() {
+  const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const navigation = [
     {
       name: "Trang chủ",
-      href: "home",
+      href: "/",
       icon: <Home className="w-5 h-5" />,
-      current: currentPage === "home",
+      current: location.pathname === "/",
     },
     {
       name: "Dashboard",
-      href: "dashboard",
+      href: "/dashboard",
       icon: <BarChart3 className="w-5 h-5" />,
-      current: currentPage === "dashboard",
+      current: location.pathname === "/dashboard",
     },
     {
       name: "Tạo Video AI",
-      href: "tao-video",
+      href: "/tao-video",
       icon: <Video className="w-5 h-5" />,
-      current: currentPage === "tao-video",
+      current: location.pathname === "/tao-video",
       highlight: true,
     },
     {
       name: "Quản Lý Kịch Bản",
-      href: "script-manager",
+      href: "/quan-ly-kich-ban",
       icon: <FileText className="w-5 h-5" />,
-      current: currentPage === "script-manager" || currentPage === "tao-kich-ban",
+      current: location.pathname === "/quan-ly-kich-ban",
       highlight: true,
     },
     {
       name: "Quản Lý Dự Án",
-      href: "project-management",
+      href: "/quan-ly-du-an",
       icon: <FolderOpen className="w-5 h-5" />,
-      current: currentPage === "project-management",
+      current: location.pathname === "/quan-ly-du-an",
     },
     {
       name: "Analytics",
-      href: "analytics",
+      href: "/analytics",
       icon: <BarChart3 className="w-5 h-5" />,
-      current: currentPage === "analytics",
+      current: location.pathname === "/analytics",
     },
     {
       name: "Cài đặt",
-      href: "settings",
+      href: "/cai-dat",
       icon: <Settings className="w-5 h-5" />,
-      current: currentPage === "settings",
+      current: location.pathname === "/cai-dat",
     },
     {
       name: "Trợ giúp",
-      href: "help",
+      href: "/tro-giup",
       icon: <HelpCircle className="w-5 h-5" />,
-      current: currentPage === "help",
+      current: location.pathname === "/tro-giup",
     },
   ];
 
@@ -100,22 +97,21 @@ export default function Sidebar({ onPageChange, currentPage }: SidebarProps) {
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           {navigation.map((item, index) => (
-            <motion.button
-              key={item.name}
-              onClick={() => onPageChange(item.href)}
-              className={`w-full flex items-center px-3 py-3 rounded-xl text-left transition-all duration-200 group ${
-                item.current
-                  ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                  : item.highlight
-                  ? "text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-900/20 dark:hover:to-purple-900/20"
-                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-              }`}
-              whileHover={{ x: isCollapsed ? 0 : 4 }}
-              whileTap={{ scale: 0.98 }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
+            <Link key={item.name} to={item.href}>
+              <motion.div
+                className={`w-full flex items-center px-3 py-3 rounded-xl text-left transition-all duration-200 group cursor-pointer ${
+                  item.current
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                    : item.highlight
+                    ? "text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-900/20 dark:hover:to-purple-900/20"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                }`}
+                whileHover={{ x: isCollapsed ? 0 : 4 }}
+                whileTap={{ scale: 0.98 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
               <div className="flex items-center justify-center min-w-[20px]">
                 {item.icon}
               </div>
@@ -135,7 +131,8 @@ export default function Sidebar({ onPageChange, currentPage }: SidebarProps) {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </motion.button>
+              </motion.div>
+            </Link>
           ))}
         </nav>
 
