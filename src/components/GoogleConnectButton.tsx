@@ -38,7 +38,7 @@ export default function GoogleConnectButton({
     // Debug: Log configuration
     console.log('🔧 Google OAuth Configuration:', {
       clientId: GOOGLE_CLIENT_ID ? '✅ Set' : '❌ Missing',
-      redirectUri: REDIRECT_URI,
+      redirectUri: window.location.origin + '/oauth2/callback.html',
       nodeEnv: process.env.NODE_ENV,
       origin: window.location.origin
     });
@@ -68,7 +68,7 @@ export default function GoogleConnectButton({
     };
 
     loadGoogleScript();
-  }, [GOOGLE_CLIENT_ID, REDIRECT_URI]);
+  }, [GOOGLE_CLIENT_ID]);
 
   const handleConnect = async () => {
     if (!GOOGLE_CLIENT_ID) {
