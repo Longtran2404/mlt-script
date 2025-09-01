@@ -2,7 +2,7 @@
 
 **Nền tảng AI All-in-One để tạo kịch bản và video chuyên nghiệp** - Single Page Application tích hợp đầy đủ chức năng.
 
-🌐 **Live Demo**: [https://mlt-script.vercel.app](https://mlt-script.vercel.app)
+🌐 **Live Demo**: [https://mlt-script.vercel.app](https://mlt-script.vercel.app) (Updated)
 
 ## ✨ Tính năng đầy đủ trong 1 trang
 
@@ -196,11 +196,17 @@ Dự án này được phát hành dưới MIT License.
 
 - **Email**: support@mlt.edu.vn
 - **Website**: https://mlt.edu.vn
-- **GitHub**: [MLT Script AI Platform](https://github.com/mlt/script-ai-platform)
+- **GitHub**: [MLT Script AI Platform](https://github.com/Longtran2404/mlt-script)
 
 ## 🚀 Live Demo
 
-**🌟 Production URL**: [https://mlt-script.vercel.app](https://mlt-script.vercel.app)
+**🌟 Production URL**: [https://mlt-script.vercel.app](https://mlt-script.vercel.app) ✅ **DEPLOYED**
+
+### 📊 Deployment Status
+- ✅ **GitHub Repository**: https://github.com/Longtran2404/mlt-script
+- ✅ **Vercel Production**: https://mlt-script.vercel.app
+- ✅ **Vercel Dashboard**: https://vercel.com/minh-long-trans-projects/mlt-script
+- ✅ **Auto Deploy**: Enabled (push to main branch)
 
 **🎯 Direct Features:**
 - 🏠 **Main App**: https://mlt-script.vercel.app/ 
