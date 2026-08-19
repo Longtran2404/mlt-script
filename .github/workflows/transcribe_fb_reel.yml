@@ -1,0 +1,65 @@
+name: Transcribe Facebook Reel
+
+on:
+  push:
+    paths:
+      - '.github/workflows/transcribe_fb_reel.yml'
+  workflow_dispatch:
+
+jobs:
+  transcribe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python -m pip install --upgrade pip
+          pip install -U yt-dlp faster-whisper
+
+      - name: Download Facebook Reel
+        run: |
+          mkdir -p output
+          yt-dlp --no-playlist --restrict-filenames -o 'output/video.%(ext)s' 'https://www.facebook.com/share/r/1K8hmZo4XG/?mibextid=wwXIfr'
+          VIDEO=$(find output -maxdepth 1 -type f -name 'video.*' | head -n 1)
+          ffmpeg -y -i "$VIDEO" -vn -ac 1 -ar 16000 output/audio.wav
+
+      - name: Transcribe with Whisper
+        run: |
+          python - <<'PY'
+          from faster_whisper import WhisperModel
+          from pathlib import Path
+
+          model = WhisperModel('small', device='cpu', compute_type='int8')
+          segments, info = model.transcribe('output/audio.wav', vad_filter=True, beam_size=5)
+          lines = []
+          timed = []
+          for s in segments:
+              text = s.text.strip()
+              if not text:
+                  continue
+              lines.append(text)
+              timed.append(f'[{s.start:07.2f} - {s.end:07.2f}] {text}')
+          Path('output/transcript.txt').write_text('\n'.join(lines), encoding='utf-8')
+          Path('output/transcript_timestamps.txt').write_text('\n'.join(timed), encoding='utf-8')
+          Path('output/language.txt').write_text(f'language={info.language}\nprobability={info.language_probability}\n', encoding='utf-8')
+          PY
+
+      - name: Upload transcript artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: facebook-reel-transcript
+          path: |
+            output/transcript.txt
+            output/transcript_timestamps.txt
+            output/language.txt
+          retention-days: 1
