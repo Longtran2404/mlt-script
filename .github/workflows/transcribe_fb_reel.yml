@@ -1,19 +1,23 @@
-# trigger: 2026-08-19
 name: Transcribe Facebook Reel
 
 on:
-  push:
-    paths:
-      - '.github/workflows/transcribe_fb_reel.yml'
+  issues:
+    types: [opened]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   transcribe:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.issue.title, '[TRANSCRIBE FB]')
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -25,13 +29,29 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg
           python -m pip install --upgrade pip
-          pip install -U yt-dlp faster-whisper
+          pip install -U yt-dlp faster-whisper requests
 
       - name: Download Facebook Reel
+        id: download
+        shell: bash
         run: |
-          mkdir -p output
-          yt-dlp --no-playlist --restrict-filenames -o 'output/video.%(ext)s' 'https://www.facebook.com/share/r/1K8hmZo4XG/?mibextid=wwXIfr'
+          set -o pipefail
+          mkdir -p output transcripts
+          URL='https://www.facebook.com/share/r/1K8hmZo4XG/?mibextid=wwXIfr'
+          python - <<'PY' | tee output/resolve.txt
+          import requests
+          url='https://www.facebook.com/share/r/1K8hmZo4XG/?mibextid=wwXIfr'
+          r=requests.get(url, allow_redirects=True, timeout=30, headers={'User-Agent':'Mozilla/5.0'})
+          print(r.url)
+          PY
+          FINAL_URL=$(tail -n 1 output/resolve.txt)
+          echo "Resolved URL: $FINAL_URL" | tee output/download.log
+          if ! yt-dlp --no-playlist --restrict-filenames --user-agent 'Mozilla/5.0' -o 'output/video.%(ext)s' "$FINAL_URL" 2>&1 | tee -a output/download.log; then
+            echo 'First attempt failed; retrying original share URL' | tee -a output/download.log
+            yt-dlp --no-playlist --restrict-filenames --user-agent 'Mozilla/5.0' -o 'output/video.%(ext)s' "$URL" 2>&1 | tee -a output/download.log
+          fi
           VIDEO=$(find output -maxdepth 1 -type f -name 'video.*' | head -n 1)
+          test -n "$VIDEO"
           ffmpeg -y -i "$VIDEO" -vn -ac 1 -ar 16000 output/audio.wav
 
       - name: Transcribe with Whisper
@@ -42,25 +62,23 @@ jobs:
 
           model = WhisperModel('small', device='cpu', compute_type='int8')
           segments, info = model.transcribe('output/audio.wav', vad_filter=True, beam_size=5)
-          lines = []
-          timed = []
+          lines=[]
+          timed=[]
           for s in segments:
-              text = s.text.strip()
-              if not text:
+              t=s.text.strip()
+              if not t:
                   continue
-              lines.append(text)
-              timed.append(f'[{s.start:07.2f} - {s.end:07.2f}] {text}')
-          Path('output/transcript.txt').write_text('\n'.join(lines), encoding='utf-8')
-          Path('output/transcript_timestamps.txt').write_text('\n'.join(timed), encoding='utf-8')
-          Path('output/language.txt').write_text(f'language={info.language}\nprobability={info.language_probability}\n', encoding='utf-8')
+              lines.append(t)
+              timed.append(f'[{s.start:07.2f} - {s.end:07.2f}] {t}')
+          Path('transcripts/facebook_reel_latest.txt').write_text('\n'.join(lines), encoding='utf-8')
+          Path('transcripts/facebook_reel_latest_timestamps.txt').write_text('\n'.join(timed), encoding='utf-8')
+          Path('transcripts/facebook_reel_latest_language.txt').write_text(f'language={info.language}\nprobability={info.language_probability}\n', encoding='utf-8')
           PY
 
-      - name: Upload transcript artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: facebook-reel-transcript
-          path: |
-            output/transcript.txt
-            output/transcript_timestamps.txt
-            output/language.txt
-          retention-days: 1
+      - name: Commit transcript to workspace
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add transcripts/facebook_reel_latest*.txt
+          git commit -m 'Add latest Facebook Reel transcript' || true
+          git push
