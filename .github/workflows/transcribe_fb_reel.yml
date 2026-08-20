@@ -44,18 +44,39 @@ jobs:
         run: |
           mkdir -p output
           python - <<'PY'
-          import os, requests, urllib.parse, pathlib
+          import os, requests, urllib.parse, pathlib, re
           url=os.environ['URL']
           r=requests.get(url,allow_redirects=True,timeout=30,headers={'User-Agent':'Mozilla/5.0'})
-          q=urllib.parse.parse_qs(urllib.parse.urlparse(r.url).query)
+          final_url=r.url
+          vid=''; page=''; nxt=''
+
+          # Direct reel URLs (including share-link redirects such as /reel/1040486325006885/)
+          for candidate in (final_url, url):
+              m=re.search(r'/reel/(\d+)', candidate)
+              if m:
+                  vid=m.group(1)
+                  break
+
+          # Legacy/story-style redirects, often nested behind Facebook login
+          q=urllib.parse.parse_qs(urllib.parse.urlparse(final_url).query)
           nxt=q.get('next',[''])[0]
-          nq=urllib.parse.parse_qs(urllib.parse.urlparse(nxt).query) if nxt else {}
-          vid=nq.get('story_fbid',[''])[0]
-          page=nq.get('id',[''])[0]
+          if nxt:
+              nq=urllib.parse.parse_qs(urllib.parse.urlparse(nxt).query)
+              if not vid:
+                  vid=nq.get('story_fbid',[''])[0]
+              page=nq.get('id',[''])[0]
+          else:
+              q2=urllib.parse.parse_qs(urllib.parse.urlparse(final_url).query)
+              if not vid:
+                  vid=q2.get('story_fbid',[''])[0] or q2.get('v',[''])[0]
+              page=q2.get('id',[''])[0]
+
           pathlib.Path('output/video_id.txt').write_text(vid,encoding='utf-8')
           pathlib.Path('output/page_id.txt').write_text(page,encoding='utf-8')
-          pathlib.Path('output/resolved.txt').write_text('\n'.join([url,r.url,nxt,vid,page]),encoding='utf-8')
-          print('video_id=',vid); print('page_id=',page)
+          pathlib.Path('output/resolved.txt').write_text('\n'.join([url,final_url,nxt,vid,page]),encoding='utf-8')
+          print('final_url=',final_url)
+          print('video_id=',vid)
+          print('page_id=',page)
           PY
 
       - name: Capture public embed media with Chrome
@@ -64,7 +85,7 @@ jobs:
         shell: bash
         run: |
           python - <<'PY'
-          import json, html, re, urllib.parse, pathlib, requests, os
+          import json, urllib.parse, pathlib, requests
           from playwright.sync_api import sync_playwright
 
           vid=pathlib.Path('output/video_id.txt').read_text().strip()
@@ -77,14 +98,12 @@ jobs:
             f'https://www.facebook.com/story.php?story_fbid={vid}&id={page_id}' if page_id else '',
           ]
           sources=[s for s in sources if s]
-          media=[]
-          seen=set()
+          media=[]; seen=set()
 
           def add_media(url,ctype='',rtype=''):
               if not url or url in seen: return
               lu=url.lower(); lc=(ctype or '').lower()
               is_media=(rtype=='media' or lc.startswith('video/') or lc.startswith('audio/') or '.mp4' in lu or '.m3u8' in lu or '.mpd' in lu)
-              # Never treat Facebook static JS/CSS assets as media
               if 'static.xx.fbcdn.net' in lu or not is_media: return
               seen.add(url); media.append((url,ctype,rtype))
 
@@ -94,8 +113,7 @@ jobs:
               context=browser.new_context(user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/145 Safari/537.36',locale='en-US')
               page=context.new_page()
               def on_response(resp):
-                  try:
-                      add_media(resp.url,resp.headers.get('content-type',''),resp.request.resource_type)
+                  try: add_media(resp.url,resp.headers.get('content-type',''),resp.request.resource_type)
                   except Exception: pass
               page.on('response',on_response)
               pages=[]
@@ -105,23 +123,12 @@ jobs:
                   try:
                       page.goto(embed,wait_until='domcontentloaded',timeout=45000)
                       page.wait_for_timeout(2500)
-                      # Try to force playback if a video element exists
-                      try:
-                          page.locator('video').evaluate_all("els=>els.forEach(v=>{v.muted=true;v.autoplay=true;v.play().catch(()=>{})})")
+                      try: page.locator('video').evaluate_all("els=>els.forEach(v=>{v.muted=true;v.autoplay=true;v.play().catch(()=>{})})")
                       except Exception: pass
-                      # Try likely play controls
-                      for sel in ['[aria-label*=Play i]','div[role=button]']:
-                          try:
-                              loc=page.locator(sel)
-                              if loc.count()>0: loc.first.click(timeout=1500,force=True)
-                          except Exception: pass
                       page.wait_for_timeout(6000)
-                      try:
-                          vals=page.locator('video').evaluate_all("els=>els.map(v=>({src:v.src,currentSrc:v.currentSrc,poster:v.poster,ready:v.readyState}))")
-                          print('VIDEO_ELEMENTS',json.dumps(vals)[:3000])
-                          for v in vals:
-                              add_media(v.get('currentSrc') or v.get('src') or '','video/mp4','media')
-                      except Exception as e: print('video element error',e)
+                      vals=page.locator('video').evaluate_all("els=>els.map(v=>({src:v.src,currentSrc:v.currentSrc,ready:v.readyState}))")
+                      print('VIDEO_ELEMENTS',json.dumps(vals)[:3000])
+                      for v in vals: add_media(v.get('currentSrc') or v.get('src') or '','video/mp4','media')
                       pages.append(page.content())
                   except Exception as e: print('embed error',e)
               pathlib.Path('output/embed_browser.html').write_text('\n<!--PAGE-->\n'.join(pages),encoding='utf-8')
@@ -129,14 +136,12 @@ jobs:
 
           pathlib.Path('output/media_candidates.txt').write_text('\n'.join(f'{c}\t{r}\t{u}' for u,c,r in media),encoding='utf-8')
           print('MEDIA_COUNT',len(media))
-          for i,(u,c,r) in enumerate(media[:30]): print('MEDIA',i,c,r,u[:600])
           if not media: raise SystemExit(3)
 
           sess=requests.Session()
-          sess.headers.update({'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/145 Safari/537.36','Referer':'https://www.facebook.com/'})
+          sess.headers.update({'User-Agent':'Mozilla/5.0','Referer':'https://www.facebook.com/'})
           for i,(u,c,r) in enumerate(media):
               if u.startswith('blob:'): continue
-              # HLS/DASH URLs are handled by ffmpeg directly
               if '.m3u8' in u.lower() or '.mpd' in u.lower():
                   pathlib.Path('output/stream_url.txt').write_text(u,encoding='utf-8')
                   print('STREAM_URL_SUCCESS',u)
@@ -164,7 +169,9 @@ jobs:
         shell: bash
         run: |
           VID=$(cat output/video_id.txt); PAGE=$(cat output/page_id.txt); SUCCESS=0
-          for CANDIDATE in "https://www.facebook.com/reel/$VID/" "https://www.facebook.com/watch/?v=$VID" "https://www.facebook.com/$PAGE/videos/$VID/"; do
+          CANDIDATES=("https://www.facebook.com/reel/$VID/" "https://www.facebook.com/watch/?v=$VID")
+          if [ -n "$PAGE" ]; then CANDIDATES+=("https://www.facebook.com/$PAGE/videos/$VID/"); fi
+          for CANDIDATE in "${CANDIDATES[@]}"; do
             echo "Trying yt-dlp: $CANDIDATE"
             if yt-dlp --impersonate chrome --no-playlist --restrict-filenames -o 'output/video.%(ext)s' "$CANDIDATE"; then SUCCESS=1; break; fi
           done
@@ -179,7 +186,6 @@ jobs:
           else
             VIDEO=$(find output -maxdepth 1 -type f \( -name 'video.mp4' -o -name 'video.webm' -o -name 'video.mkv' \) | head -n 1)
             test -n "$VIDEO"
-            file "$VIDEO" || true
             ffmpeg -y -i "$VIDEO" -vn -ac 1 -ar 16000 output/audio.wav
           fi
 
