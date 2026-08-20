@@ -24,10 +24,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg
           python -m pip install --upgrade pip
-          pip install -U 'yt-dlp[default,curl-cffi]' faster-whisper requests
+          pip install -U 'yt-dlp[default,curl-cffi]' faster-whisper requests playwright
 
       - name: Read request URL
         id: req
@@ -37,49 +35,152 @@ jobs:
           echo "url=$URL" >> "$GITHUB_OUTPUT"
           echo "Requested: $URL"
 
-      - name: Download Facebook Reel
+      - name: Resolve Facebook IDs
         shell: bash
         env:
           URL: ${{ steps.req.outputs.url }}
         run: |
-          set -o pipefail
           mkdir -p output
-          python - <<'PY' > output/candidates.txt
-          import os, requests, urllib.parse, re
+          python - <<'PY'
+          import os, requests, urllib.parse, pathlib
           url=os.environ['URL']
           r=requests.get(url, allow_redirects=True, timeout=30, headers={'User-Agent':'Mozilla/5.0'})
-          print(url)
-          print(r.url)
           q=urllib.parse.parse_qs(urllib.parse.urlparse(r.url).query)
           nxt=q.get('next',[''])[0]
-          if nxt:
-              print(nxt)
-              nq=urllib.parse.parse_qs(urllib.parse.urlparse(nxt).query)
-              vid=nq.get('story_fbid',[''])[0]
-              page=nq.get('id',[''])[0]
-              if vid:
-                  print(f'https://www.facebook.com/reel/{vid}/')
-                  print(f'https://www.facebook.com/watch/?v={vid}')
-                  if page:
-                      print(f'https://www.facebook.com/{page}/videos/{vid}/')
+          nq=urllib.parse.parse_qs(urllib.parse.urlparse(nxt).query) if nxt else {}
+          vid=nq.get('story_fbid',[''])[0]
+          page=nq.get('id',[''])[0]
+          pathlib.Path('output/video_id.txt').write_text(vid, encoding='utf-8')
+          pathlib.Path('output/page_id.txt').write_text(page, encoding='utf-8')
+          pathlib.Path('output/resolved.txt').write_text('\n'.join([url,r.url,nxt,vid,page]),encoding='utf-8')
+          print('video_id=',vid)
+          print('page_id=',page)
           PY
-          echo 'Candidate URLs:' | tee output/download.log
-          cat output/candidates.txt | tee -a output/download.log
-          yt-dlp --list-impersonate-targets 2>&1 | tee -a output/download.log || true
+
+      - name: Try public embed and capture media
+        id: embed
+        continue-on-error: true
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, html, re, urllib.parse, pathlib, requests, os, time
+          from playwright.sync_api import sync_playwright
+
+          vid=pathlib.Path('output/video_id.txt').read_text().strip()
+          page_id=pathlib.Path('output/page_id.txt').read_text().strip()
+          if not vid:
+              raise SystemExit('No video id resolved')
+
+          direct_candidates=[
+              f'https://www.facebook.com/reel/{vid}/',
+              f'https://www.facebook.com/watch/?v={vid}',
+              f'https://www.facebook.com/{page_id}/videos/{vid}/' if page_id else '',
+              f'https://www.facebook.com/story.php?story_fbid={vid}&id={page_id}' if page_id else '',
+          ]
+          direct_candidates=[x for x in direct_candidates if x]
+          media=[]
+
+          def harvest(text):
+              if not text: return
+              decoded=html.unescape(text).replace('\\/','/')
+              pats=[
+                  r'https?://[^"\'<> ]+?\.mp4(?:\?[^"\'<> ]*)?',
+                  r'https?://[^"\'<> ]+?fbcdn\.net/[^"\'<> ]+',
+              ]
+              for pat in pats:
+                  for m in re.findall(pat, decoded):
+                      u=m.replace('\\u0025','%').replace('\\u0026','&').replace('\\u003d','=').replace('\\u002F','/')
+                      if u not in media: media.append(u)
+
+          sess=requests.Session()
+          sess.headers.update({'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/145 Safari/537.36','Accept-Language':'en-US,en;q=0.9'})
+          for src in direct_candidates:
+              embed='https://www.facebook.com/plugins/video.php?href='+urllib.parse.quote(src,safe='')+'&show_text=false&autoplay=false&width=560'
+              try:
+                  rr=sess.get(embed,timeout=30)
+                  pathlib.Path('output/embed_requests.html').write_text(rr.text,encoding='utf-8')
+                  harvest(rr.text)
+              except Exception as e:
+                  print('embed requests error',e)
+
+          chrome='/usr/bin/google-chrome'
+          if not os.path.exists(chrome):
+              chrome=None
+          with sync_playwright() as p:
+              browser=p.chromium.launch(headless=True, executable_path=chrome, args=['--no-sandbox','--disable-dev-shm-usage']) if chrome else p.chromium.launch(headless=True,args=['--no-sandbox'])
+              context=browser.new_context(user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/145 Safari/537.36', locale='en-US')
+              page=context.new_page()
+              def on_response(resp):
+                  u=resp.url
+                  if 'fbcdn' in u.lower() or '.mp4' in u.lower():
+                      if u not in media: media.append(u)
+              page.on('response',on_response)
+              for src in direct_candidates:
+                  embed='https://www.facebook.com/plugins/video.php?href='+urllib.parse.quote(src,safe='')+'&show_text=false&autoplay=true&width=560'
+                  print('Opening embed',embed)
+                  try:
+                      page.goto(embed, wait_until='domcontentloaded', timeout=45000)
+                      page.wait_for_timeout(5000)
+                      harvest(page.content())
+                      try:
+                          vids=page.locator('video').evaluate_all('(els)=>els.map(v=>({src:v.src,currentSrc:v.currentSrc,html:v.outerHTML}))')
+                          harvest(json.dumps(vids))
+                      except Exception as e:
+                          print('video element error',e)
+                      pathlib.Path('output/embed_browser.html').write_text(page.content(),encoding='utf-8')
+                  except Exception as e:
+                      print('browser embed error',e)
+              browser.close()
+
+          pathlib.Path('output/media_candidates.txt').write_text('\n'.join(media),encoding='utf-8')
+          print('Captured media candidates:',len(media))
+          for u in media[:20]: print(u[:500])
+          if not media:
+              raise SystemExit(2)
+
+          # Try direct media URLs until one downloads as a non-trivial file
+          for i,u in enumerate(media):
+              try:
+                  rr=sess.get(u,stream=True,timeout=60,headers={'Referer':'https://www.facebook.com/'})
+                  ctype=rr.headers.get('content-type','')
+                  out=pathlib.Path(f'output/embed_video_{i}.mp4')
+                  with out.open('wb') as f:
+                      for chunk in rr.iter_content(1024*1024):
+                          if chunk: f.write(chunk)
+                  print('candidate',i,'status',rr.status_code,'ctype',ctype,'size',out.stat().st_size)
+                  if rr.status_code < 400 and out.stat().st_size > 200000:
+                      pathlib.Path('output/video.mp4').write_bytes(out.read_bytes())
+                      print('MEDIA_DOWNLOAD_SUCCESS',u)
+                      raise SystemExit(0)
+              except SystemExit:
+                  raise
+              except Exception as e:
+                  print('media download error',i,e)
+          raise SystemExit(3)
+          PY
+
+      - name: Fallback to yt-dlp
+        if: steps.embed.outcome != 'success'
+        shell: bash
+        run: |
+          VID=$(cat output/video_id.txt)
+          PAGE=$(cat output/page_id.txt)
           SUCCESS=0
-          while IFS= read -r CANDIDATE; do
-            [ -z "$CANDIDATE" ] && continue
-            echo "Trying: $CANDIDATE" | tee -a output/download.log
-            if yt-dlp --impersonate chrome --no-playlist --restrict-filenames -o 'output/video.%(ext)s' "$CANDIDATE" 2>&1 | tee -a output/download.log; then
-              SUCCESS=1
-              break
-            fi
-          done < output/candidates.txt
-          if [ "$SUCCESS" -ne 1 ]; then
-            echo 'All candidate downloads failed' | tee -a output/download.log
-            exit 1
-          fi
-          VIDEO=$(find output -maxdepth 1 -type f -name 'video.*' | head -n 1)
+          for CANDIDATE in \
+            "https://www.facebook.com/reel/$VID/" \
+            "https://www.facebook.com/watch/?v=$VID" \
+            "https://www.facebook.com/$PAGE/videos/$VID/"; do
+              echo "Trying yt-dlp: $CANDIDATE"
+              if yt-dlp --impersonate chrome --no-playlist --restrict-filenames -o 'output/video.%(ext)s' "$CANDIDATE"; then SUCCESS=1; break; fi
+          done
+          test "$SUCCESS" -eq 1
+
+      - name: Extract audio
+        shell: bash
+        run: |
+          VIDEO=$(find output -maxdepth 1 -type f \( -name 'video.mp4' -o -name 'video.webm' -o -name 'video.mkv' \) | head -n 1)
+          if [ -z "$VIDEO" ]; then VIDEO=$(find output -maxdepth 1 -type f -name 'video.*' | head -n 1); fi
+          echo "Using video: $VIDEO"
           test -n "$VIDEO"
           ffmpeg -y -i "$VIDEO" -vn -ac 1 -ar 16000 output/audio.wav
 
@@ -88,19 +189,20 @@ jobs:
           python - <<'PY'
           from faster_whisper import WhisperModel
           from pathlib import Path
-          model = WhisperModel('small', device='cpu', compute_type='int8')
-          segments, info = model.transcribe('output/audio.wav', vad_filter=True, beam_size=5)
-          plain=[]
-          timed=[]
+          model=WhisperModel('small',device='cpu',compute_type='int8')
+          segments,info=model.transcribe('output/audio.wav',vad_filter=True,beam_size=5)
+          plain=[]; timed=[]
           for s in segments:
               t=s.text.strip()
-              if not t:
-                  continue
+              if not t: continue
               plain.append(t)
               timed.append(f'[{s.start:07.2f} - {s.end:07.2f}] {t}')
-          Path('output/transcript.txt').write_text('\n'.join(plain), encoding='utf-8')
-          Path('output/transcript_timestamps.txt').write_text('\n'.join(timed), encoding='utf-8')
-          Path('output/language.txt').write_text(f'language={info.language}\nprobability={info.language_probability}\n', encoding='utf-8')
+          Path('output/transcript.txt').write_text('\n'.join(plain),encoding='utf-8')
+          Path('output/transcript_timestamps.txt').write_text('\n'.join(timed),encoding='utf-8')
+          Path('output/language.txt').write_text(f'language={info.language}\nprobability={info.language_probability}\n',encoding='utf-8')
+          print('===TRANSCRIPT_TS_START===')
+          print('\n'.join(timed))
+          print('===TRANSCRIPT_TS_END===')
           PY
 
       - name: Upload transcript artifact
@@ -112,7 +214,9 @@ jobs:
             output/transcript.txt
             output/transcript_timestamps.txt
             output/language.txt
-            output/download.log
-            output/candidates.txt
+            output/resolved.txt
+            output/media_candidates.txt
+            output/embed_requests.html
+            output/embed_browser.html
           if-no-files-found: warn
           retention-days: 1
