@@ -1,0 +1,146 @@
+name: Transcribe Facebook Reel via F4
+
+on:
+  pull_request:
+    paths:
+      - 'transcripts/f4_request.txt'
+
+permissions:
+  contents: read
+
+jobs:
+  transcribe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          python -m pip install --upgrade pip
+          pip install -U playwright requests faster-whisper
+
+      - name: Use F4Facebook public downloader
+        shell: bash
+        run: |
+          mkdir -p output
+          URL=$(tail -n 1 transcripts/f4_request.txt)
+          export TARGET_URL="$URL"
+          python - <<'PY'
+          import os, json, pathlib, requests
+          from playwright.sync_api import sync_playwright
+
+          target=os.environ['TARGET_URL']
+          candidates=[]
+          logs=[]
+          chrome='/usr/bin/google-chrome'
+          with sync_playwright() as p:
+              browser=p.chromium.launch(headless=True,executable_path=chrome,args=['--no-sandbox','--disable-dev-shm-usage'])
+              ctx=browser.new_context(user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/145 Safari/537.36',locale='en-US',accept_downloads=True)
+              page=ctx.new_page()
+              def resp(r):
+                  try:
+                      ct=r.headers.get('content-type','').lower()
+                      if ct.startswith('video/') or '.mp4' in r.url.lower() or 'fbcdn.net' in r.url.lower():
+                          candidates.append((r.url,ct,'response'))
+                  except Exception: pass
+              page.on('response',resp)
+              page.goto('https://f4facebook.com/',wait_until='domcontentloaded',timeout=60000)
+              logs.append('title='+page.title())
+              inp=page.locator('input[type="url"], input[name*="url" i], input[placeholder*="facebook" i]').first
+              inp.fill(target)
+              btn=page.get_by_role('button',name='Download Video')
+              if btn.count()==0:
+                  btn=page.locator('button:has-text("Download"), input[type="submit"]').first
+              btn.click()
+              try:
+                  page.wait_for_load_state('networkidle',timeout=45000)
+              except Exception:
+                  page.wait_for_timeout(12000)
+              page.wait_for_timeout(5000)
+              html=page.content()
+              pathlib.Path('output/f4_result.html').write_text(html,encoding='utf-8')
+              logs.append('final_url='+page.url)
+              logs.append('body='+page.locator('body').inner_text()[:8000])
+              anchors=page.locator('a').evaluate_all("els=>els.map(a=>({href:a.href,text:(a.innerText||'').trim(),download:a.download||''}))")
+              pathlib.Path('output/f4_anchors.json').write_text(json.dumps(anchors,ensure_ascii=False,indent=2),encoding='utf-8')
+              for a in anchors:
+                  h=a.get('href','')
+                  text=(a.get('text') or '').lower()
+                  if h and ('.mp4' in h.lower() or 'fbcdn.net' in h.lower() or 'download' in text or a.get('download')):
+                      candidates.append((h,'','anchor'))
+              browser.close()
+
+          # dedupe, reject local/static links
+          uniq=[]; seen=set()
+          for u,ct,src in candidates:
+              if not u or u in seen: continue
+              seen.add(u)
+              if u.startswith('blob:') or 'static.xx.fbcdn.net' in u: continue
+              uniq.append((u,ct,src))
+          pathlib.Path('output/f4_candidates.txt').write_text('\n'.join(f'{src}\t{ct}\t{u}' for u,ct,src in uniq),encoding='utf-8')
+          pathlib.Path('output/f4_log.txt').write_text('\n'.join(logs),encoding='utf-8')
+          print('\n'.join(logs))
+          print('CANDIDATE_COUNT',len(uniq))
+          for i,(u,ct,src) in enumerate(uniq): print('CANDIDATE',i,src,ct,u[:800])
+
+          sess=requests.Session()
+          sess.headers.update({'User-Agent':'Mozilla/5.0','Referer':'https://f4facebook.com/'})
+          for i,(u,ct,src) in enumerate(uniq):
+              try:
+                  r=sess.get(u,stream=True,allow_redirects=True,timeout=90)
+                  c=r.headers.get('content-type','').lower()
+                  out=pathlib.Path(f'output/f4_candidate_{i}.bin')
+                  with out.open('wb') as f:
+                      for chunk in r.iter_content(1024*1024):
+                          if chunk: f.write(chunk)
+                  size=out.stat().st_size
+                  print('FETCH',i,r.status_code,c,size,r.url[:500])
+                  if r.status_code<400 and size>100000 and (c.startswith('video/') or '.mp4' in r.url.lower() or 'fbcdn.net' in r.url.lower()):
+                      pathlib.Path('output/video.mp4').write_bytes(out.read_bytes())
+                      print('VIDEO_SUCCESS')
+                      raise SystemExit(0)
+              except SystemExit: raise
+              except Exception as e: print('FETCH_ERROR',i,e)
+          raise SystemExit('No downloadable public video returned by F4Facebook')
+          PY
+
+      - name: Extract audio
+        run: ffmpeg -y -i output/video.mp4 -vn -ac 1 -ar 16000 output/audio.wav
+
+      - name: Transcribe
+        run: |
+          python - <<'PY'
+          from faster_whisper import WhisperModel
+          from pathlib import Path
+          model=WhisperModel('small',device='cpu',compute_type='int8')
+          segs,info=model.transcribe('output/audio.wav',vad_filter=True,beam_size=5)
+          timed=[]
+          for s in segs:
+              t=s.text.strip()
+              if t: timed.append(f'[{s.start:07.2f} - {s.end:07.2f}] {t}')
+          Path('output/transcript_timestamps.txt').write_text('\n'.join(timed),encoding='utf-8')
+          print('===TRANSCRIPT_TS_START===')
+          print('\n'.join(timed))
+          print('===TRANSCRIPT_TS_END===')
+          print('LANGUAGE',info.language,info.language_probability)
+          PY
+
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: facebook-reel-f4
+          path: |
+            output/f4_log.txt
+            output/f4_candidates.txt
+            output/f4_anchors.json
+            output/f4_result.html
+            output/transcript_timestamps.txt
+          if-no-files-found: warn
+          retention-days: 1
