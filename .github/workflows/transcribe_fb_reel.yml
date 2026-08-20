@@ -1,8 +1,9 @@
 name: Transcribe Facebook Reel
 
 on:
-  issues:
-    types: [opened]
+  push:
+    paths:
+      - 'transcripts/request.txt'
   workflow_dispatch:
 
 permissions:
@@ -10,7 +11,6 @@ permissions:
 
 jobs:
   transcribe:
-    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.issue.title, '[TRANSCRIBE FB]')
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -31,16 +31,24 @@ jobs:
           python -m pip install --upgrade pip
           pip install -U yt-dlp faster-whisper requests
 
-      - name: Download Facebook Reel
-        id: download
+      - name: Read request URL
+        id: req
         shell: bash
+        run: |
+          URL=$(tail -n 1 transcripts/request.txt)
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "Requested: $URL"
+
+      - name: Download Facebook Reel
+        shell: bash
+        env:
+          URL: ${{ steps.req.outputs.url }}
         run: |
           set -o pipefail
           mkdir -p output transcripts
-          URL='https://www.facebook.com/share/r/1K8hmZo4XG/?mibextid=wwXIfr'
           python - <<'PY' | tee output/resolve.txt
-          import requests
-          url='https://www.facebook.com/share/r/1K8hmZo4XG/?mibextid=wwXIfr'
+          import os, requests
+          url=os.environ['URL']
           r=requests.get(url, allow_redirects=True, timeout=30, headers={'User-Agent':'Mozilla/5.0'})
           print(r.url)
           PY
@@ -62,15 +70,15 @@ jobs:
 
           model = WhisperModel('small', device='cpu', compute_type='int8')
           segments, info = model.transcribe('output/audio.wav', vad_filter=True, beam_size=5)
-          lines=[]
+          plain=[]
           timed=[]
           for s in segments:
               t=s.text.strip()
               if not t:
                   continue
-              lines.append(t)
+              plain.append(t)
               timed.append(f'[{s.start:07.2f} - {s.end:07.2f}] {t}')
-          Path('transcripts/facebook_reel_latest.txt').write_text('\n'.join(lines), encoding='utf-8')
+          Path('transcripts/facebook_reel_latest.txt').write_text('\n'.join(plain), encoding='utf-8')
           Path('transcripts/facebook_reel_latest_timestamps.txt').write_text('\n'.join(timed), encoding='utf-8')
           Path('transcripts/facebook_reel_latest_language.txt').write_text(f'language={info.language}\nprobability={info.language_probability}\n', encoding='utf-8')
           PY
