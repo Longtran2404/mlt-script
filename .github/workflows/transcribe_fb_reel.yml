@@ -49,15 +49,11 @@ jobs:
           r=requests.get(url,allow_redirects=True,timeout=30,headers={'User-Agent':'Mozilla/5.0'})
           final_url=r.url
           vid=''; page=''; nxt=''
-
-          # Direct reel URLs (including share-link redirects such as /reel/1040486325006885/)
           for candidate in (final_url, url):
               m=re.search(r'/reel/(\d+)', candidate)
               if m:
                   vid=m.group(1)
                   break
-
-          # Legacy/story-style redirects, often nested behind Facebook login
           q=urllib.parse.parse_qs(urllib.parse.urlparse(final_url).query)
           nxt=q.get('next',[''])[0]
           if nxt:
@@ -70,7 +66,6 @@ jobs:
               if not vid:
                   vid=q2.get('story_fbid',[''])[0] or q2.get('v',[''])[0]
               page=q2.get('id',[''])[0]
-
           pathlib.Path('output/video_id.txt').write_text(vid,encoding='utf-8')
           pathlib.Path('output/page_id.txt').write_text(page,encoding='utf-8')
           pathlib.Path('output/resolved.txt').write_text('\n'.join([url,final_url,nxt,vid,page]),encoding='utf-8')
@@ -85,7 +80,7 @@ jobs:
         shell: bash
         run: |
           python - <<'PY'
-          import json, urllib.parse, pathlib, requests
+          import json, urllib.parse, pathlib, requests, re, base64
           from playwright.sync_api import sync_playwright
 
           vid=pathlib.Path('output/video_id.txt').read_text().strip()
@@ -106,6 +101,16 @@ jobs:
               is_media=(rtype=='media' or lc.startswith('video/') or lc.startswith('audio/') or '.mp4' in lu or '.m3u8' in lu or '.mpd' in lu)
               if 'static.xx.fbcdn.net' in lu or not is_media: return
               seen.add(url); media.append((url,ctype,rtype))
+
+          def vencode_tag(url):
+              try:
+                  q=urllib.parse.parse_qs(urllib.parse.urlsplit(url).query)
+                  efg=q.get('efg',[''])[0]
+                  if not efg: return ''
+                  raw=base64.b64decode(efg + '='*(-len(efg)%4))
+                  return json.loads(raw).get('vencode_tag','')
+              except Exception:
+                  return ''
 
           chrome='/usr/bin/google-chrome'
           with sync_playwright() as p:
@@ -139,7 +144,39 @@ jobs:
           if not media: raise SystemExit(3)
 
           sess=requests.Session()
-          sess.headers.update({'User-Agent':'Mozilla/5.0','Referer':'https://www.facebook.com/'})
+          sess.headers.update({'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/145 Safari/537.36','Referer':'https://www.facebook.com/'})
+
+          # Prefer the dedicated HE-AAC audio representation. Facebook's browser player
+          # requests it as DASH byte ranges; removing bytestart/byteend asks the CDN for
+          # the complete underlying audio MP4 instead of one fragment.
+          audio_urls=[]
+          for u,c,r in media:
+              if 'audio' in vencode_tag(u).lower() and not u.startswith('blob:'):
+                  full=re.sub(r'([&?])bytestart=\d+&byteend=\d+','',u)
+                  if full not in audio_urls:
+                      audio_urls.append(full)
+          print('AUDIO_BASE_CANDIDATES',len(audio_urls))
+          for i,u in enumerate(audio_urls):
+              try:
+                  rr=sess.get(u,stream=True,timeout=90)
+                  ct=rr.headers.get('content-type','').lower()
+                  out=pathlib.Path(f'output/audio_base_{i}.mp4')
+                  with out.open('wb') as f:
+                      for chunk in rr.iter_content(1024*1024):
+                          if chunk: f.write(chunk)
+                  size=out.stat().st_size
+                  print('AUDIO_BASE_DOWNLOAD',i,rr.status_code,ct,size,rr.headers.get('content-range',''))
+                  if rr.status_code < 400 and size > 100000:
+                      pathlib.Path('output/audio_source.mp4').write_bytes(out.read_bytes())
+                      pathlib.Path('output/audio_source_url.txt').write_text(u,encoding='utf-8')
+                      print('AUDIO_FULL_DOWNLOAD_SUCCESS',u)
+                      raise SystemExit(0)
+              except SystemExit:
+                  raise
+              except Exception as e:
+                  print('audio base download error',i,e)
+
+          # Generic media fallback.
           for i,(u,c,r) in enumerate(media):
               if u.startswith('blob:'): continue
               if '.m3u8' in u.lower() or '.mpd' in u.lower():
@@ -180,7 +217,10 @@ jobs:
       - name: Extract audio
         shell: bash
         run: |
-          if [ -s output/stream_url.txt ]; then
+          if [ -s output/audio_source.mp4 ]; then
+            echo 'Using dedicated Facebook audio track'
+            ffmpeg -y -i output/audio_source.mp4 -vn -ac 1 -ar 16000 output/audio.wav
+          elif [ -s output/stream_url.txt ]; then
             STREAM=$(cat output/stream_url.txt)
             ffmpeg -y -headers $'Referer: https://www.facebook.com/\r\nUser-Agent: Mozilla/5.0\r\n' -i "$STREAM" -vn -ac 1 -ar 16000 output/audio.wav
           else
@@ -221,6 +261,7 @@ jobs:
             output/resolved.txt
             output/media_candidates.txt
             output/embed_browser.html
+            output/audio_source_url.txt
             output/stream_url.txt
           if-no-files-found: warn
           retention-days: 1
