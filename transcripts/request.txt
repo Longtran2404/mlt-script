@@ -1,2 +1,3 @@
-requested_at=2026-08-20T07:48:00+07:00
+requested_at=2026-08-20T07:52:00+07:00
+request_id=fb-reel-1K8hmZo4XG
 https://www.facebook.com/share/r/1K8hmZo4XG/?mibextid=wwXIfr
