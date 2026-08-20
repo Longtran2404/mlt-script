@@ -27,7 +27,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg
           python -m pip install --upgrade pip
-          pip install -U yt-dlp faster-whisper requests
+          pip install -U 'yt-dlp[default,curl-cffi]' faster-whisper requests
 
       - name: Read request URL
         id: req
@@ -44,17 +44,40 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p output
-          python - <<'PY' | tee output/resolve.txt
-          import os, requests
+          python - <<'PY' > output/candidates.txt
+          import os, requests, urllib.parse, re
           url=os.environ['URL']
           r=requests.get(url, allow_redirects=True, timeout=30, headers={'User-Agent':'Mozilla/5.0'})
+          print(url)
           print(r.url)
+          q=urllib.parse.parse_qs(urllib.parse.urlparse(r.url).query)
+          nxt=q.get('next',[''])[0]
+          if nxt:
+              print(nxt)
+              nq=urllib.parse.parse_qs(urllib.parse.urlparse(nxt).query)
+              vid=nq.get('story_fbid',[''])[0]
+              page=nq.get('id',[''])[0]
+              if vid:
+                  print(f'https://www.facebook.com/reel/{vid}/')
+                  print(f'https://www.facebook.com/watch/?v={vid}')
+                  if page:
+                      print(f'https://www.facebook.com/{page}/videos/{vid}/')
           PY
-          FINAL_URL=$(tail -n 1 output/resolve.txt)
-          echo "Resolved URL: $FINAL_URL" | tee output/download.log
-          if ! yt-dlp --no-playlist --restrict-filenames --user-agent 'Mozilla/5.0' -o 'output/video.%(ext)s' "$FINAL_URL" 2>&1 | tee -a output/download.log; then
-            echo 'First attempt failed; retrying original share URL' | tee -a output/download.log
-            yt-dlp --no-playlist --restrict-filenames --user-agent 'Mozilla/5.0' -o 'output/video.%(ext)s' "$URL" 2>&1 | tee -a output/download.log
+          echo 'Candidate URLs:' | tee output/download.log
+          cat output/candidates.txt | tee -a output/download.log
+          yt-dlp --list-impersonate-targets 2>&1 | tee -a output/download.log || true
+          SUCCESS=0
+          while IFS= read -r CANDIDATE; do
+            [ -z "$CANDIDATE" ] && continue
+            echo "Trying: $CANDIDATE" | tee -a output/download.log
+            if yt-dlp --impersonate chrome --no-playlist --restrict-filenames -o 'output/video.%(ext)s' "$CANDIDATE" 2>&1 | tee -a output/download.log; then
+              SUCCESS=1
+              break
+            fi
+          done < output/candidates.txt
+          if [ "$SUCCESS" -ne 1 ]; then
+            echo 'All candidate downloads failed' | tee -a output/download.log
+            exit 1
           fi
           VIDEO=$(find output -maxdepth 1 -type f -name 'video.*' | head -n 1)
           test -n "$VIDEO"
@@ -90,6 +113,6 @@ jobs:
             output/transcript_timestamps.txt
             output/language.txt
             output/download.log
-            output/resolve.txt
+            output/candidates.txt
           if-no-files-found: warn
           retention-days: 1
